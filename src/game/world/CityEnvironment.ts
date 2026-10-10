@@ -64,28 +64,19 @@ export class CityEnvironment {
       roadGraphics.fillStyle(0x333333, 1);
     }
 
-    // Build regular commercial buildings and shops in the blocks
-    // Also place our 3 specific businesses at known locations
-    let placedCorner = false;
-    let placedRest = false;
-    let placedCloth = false;
+    // Explicitly place the 3 required businesses at guaranteed locations
+    this.createSpecificBusiness(120, 120, 260, 120, 'Corner Shop', 'b_corner');
+    this.createSpecificBusiness(520, 120, 260, 120, 'Small Restaurant', 'b_restaurant');
+    this.createSpecificBusiness(920, 120, 260, 120, 'Clothing Store', 'b_clothing');
 
+    // Build regular commercial buildings and shops in the blocks
     for (let x = roadWidth; x < worldWidth; x += blockSize + roadWidth) {
       for (let y = roadWidth; y < worldHeight; y += blockSize + roadWidth) {
-        // We are inside a block. Let's create a few buildings
-        if (!placedCorner && x > 200 && y > 200) {
-          this.createSpecificBusiness(x + 20, y + 20, blockSize - 40, blockSize / 2 - 30, 'Corner Shop', 'b_corner');
-          placedCorner = true;
-        } else if (!placedRest && x > 600 && y > 200) {
-          this.createSpecificBusiness(x + 20, y + 20, blockSize - 40, blockSize / 2 - 30, 'Small Restaurant', 'b_restaurant');
-          placedRest = true;
-        } else if (!placedCloth && x > 200 && y > 600) {
-          this.createSpecificBusiness(x + 20, y + 20, blockSize - 40, blockSize / 2 - 30, 'Clothing Store', 'b_clothing');
-          placedCloth = true;
-        } else {
-          this.createBuilding(x + 20, y + 20, blockSize - 40, blockSize / 2 - 30);
-        }
-        
+        // Skip blocks we used for specific businesses
+        if (y === 100 && (x === 100 || x === 500 || x === 900)) continue;
+
+        // We are inside a block. Let's create a few generic buildings
+        this.createBuilding(x + 20, y + 20, blockSize - 40, blockSize / 2 - 30);
         this.createBuilding(x + 20, y + blockSize / 2 + 10, blockSize - 40, blockSize / 2 - 30);
       }
     }
