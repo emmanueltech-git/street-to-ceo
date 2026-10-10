@@ -3,13 +3,14 @@ export interface BusinessDef {
   name: string;
   type: string;
   price: number;
+  incomePerMinute: number;
   description: string;
 }
 
 export const BUSINESS_DEFINITIONS: BusinessDef[] = [
-  { id: 'b_corner', name: 'Corner Shop', type: 'Retail', price: 25000, description: 'A small neighborhood shop.' },
-  { id: 'b_restaurant', name: 'Small Restaurant', type: 'Dining', price: 40000, description: 'A cozy diner serving local food.' },
-  { id: 'b_clothing', name: 'Clothing Store', type: 'Retail', price: 35000, description: 'A boutique selling trendy clothes.' }
+  { id: 'b_corner', name: 'Corner Shop', type: 'Retail', price: 25000, incomePerMinute: 2000, description: 'A small neighborhood shop.' },
+  { id: 'b_restaurant', name: 'Small Restaurant', type: 'Dining', price: 40000, incomePerMinute: 3500, description: 'A cozy diner serving local food.' },
+  { id: 'b_clothing', name: 'Clothing Store', type: 'Retail', price: 35000, incomePerMinute: 2800, description: 'A boutique selling trendy clothes.' }
 ];
 
 export interface Transaction {
@@ -25,6 +26,7 @@ export interface GameState {
   ledger: Transaction[];
   activeInteraction: string | null;
   panelOpen: boolean;
+  totalEarnings: number;
 }
 
 const DEFAULT_STATE: GameState = {
@@ -34,18 +36,20 @@ const DEFAULT_STATE: GameState = {
   ledger: [],
   activeInteraction: null,
   panelOpen: false,
+  totalEarnings: 0
 };
 
 let state: GameState = { ...DEFAULT_STATE };
 
 // Save/Load functionality
-const SAVE_KEY = 'street_to_ceo_save_v1';
+const SAVE_KEY = 'street_to_ceo_save_v2';
 
 export const loadGame = () => {
   try {
     const saved = localStorage.getItem(SAVE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
+      // Ensure missing fields like totalEarnings are initialized if loading older save
       state = { ...DEFAULT_STATE, ...parsed, activeInteraction: null, panelOpen: false };
     }
   } catch (e) {
@@ -59,7 +63,8 @@ export const saveGame = () => {
       cash: state.cash,
       location: state.location,
       ownedBusinesses: state.ownedBusinesses,
-      ledger: state.ledger
+      ledger: state.ledger.slice(0, 100), // Prevent unbounded growth
+      totalEarnings: state.totalEarnings
     };
     localStorage.setItem(SAVE_KEY, JSON.stringify(toSave));
   } catch (e) {
@@ -97,7 +102,8 @@ export const buyBusiness = (businessId: string): { success: boolean, message: st
   }
 
   if (state.cash < def.price) {
-    return { success: false, message: 'Insufficient funds.' };
+    const shortfall = def.price - state.cash;
+    return { success: false, message: `Insufficient funds. You need ₦${shortfall.toLocaleString()} more.` };
   }
 
   const transaction: Transaction = {
@@ -109,10 +115,47 @@ export const buyBusiness = (businessId: string): { success: boolean, message: st
   updateGameState({
     cash: state.cash - def.price,
     ownedBusinesses: [...state.ownedBusinesses, businessId],
-    ledger: [...state.ledger, transaction]
+    ledger: [transaction, ...state.ledger]
   });
   
   saveGame();
 
   return { success: true, message: `Successfully purchased ${def.name}!` };
 };
+
+// Passive Income System
+let incomeInterval: number | null = null;
+
+export const startIncomeLoop = () => {
+  if (incomeInterval) clearInterval(incomeInterval);
+  
+  // 60 seconds per game minute
+  incomeInterval = window.setInterval(() => {
+    let earnedThisTick = 0;
+    const newTransactions: Transaction[] = [];
+
+    state.ownedBusinesses.forEach(id => {
+      const def = BUSINESS_DEFINITIONS.find(b => b.id === id);
+      if (def && def.incomePerMinute > 0) {
+        earnedThisTick += def.incomePerMinute;
+        newTransactions.push({
+          date: new Date().toISOString(),
+          amount: def.incomePerMinute,
+          description: `${def.name} Income`
+        });
+      }
+    });
+
+    if (earnedThisTick > 0) {
+      updateGameState({
+        cash: state.cash + earnedThisTick,
+        totalEarnings: state.totalEarnings + earnedThisTick,
+        ledger: [...newTransactions, ...state.ledger]
+      });
+      saveGame();
+    }
+  }, 60000);
+};
+
+// Start the loop initially
+startIncomeLoop();
