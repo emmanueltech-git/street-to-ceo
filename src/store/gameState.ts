@@ -3,14 +3,14 @@ export interface BusinessDef {
   name: string;
   type: string;
   price: number;
-  incomePer15Sec: number;
+  incomePerMinute: number;
   description: string;
 }
 
 export const BUSINESS_DEFINITIONS: BusinessDef[] = [
-  { id: 'b_corner', name: 'Corner Shop', type: 'Retail', price: 25000, incomePer15Sec: 2000, description: 'A small neighborhood shop.' },
-  { id: 'b_restaurant', name: 'Small Restaurant', type: 'Dining', price: 40000, incomePer15Sec: 3500, description: 'A cozy diner serving local food.' },
-  { id: 'b_clothing', name: 'Clothing Store', type: 'Retail', price: 35000, incomePer15Sec: 2800, description: 'A boutique selling trendy clothes.' }
+  { id: 'b_corner', name: 'Corner Shop', type: 'Retail', price: 25000, incomePerMinute: 2000, description: 'A small neighborhood shop.' },
+  { id: 'b_restaurant', name: 'Small Restaurant', type: 'Dining', price: 40000, incomePerMinute: 3500, description: 'A cozy diner serving local food.' },
+  { id: 'b_clothing', name: 'Clothing Store', type: 'Retail', price: 35000, incomePerMinute: 2800, description: 'A boutique selling trendy clothes.' }
 ];
 
 export interface Transaction {
@@ -127,20 +127,25 @@ export const buyBusiness = (businessId: string): { success: boolean, message: st
 let incomeInterval: number | null = null;
 
 export const startIncomeLoop = () => {
-  if (incomeInterval) clearInterval(incomeInterval);
+  if (incomeInterval !== null) {
+    clearInterval(incomeInterval);
+    incomeInterval = null;
+  }
   
-  // 15 seconds income interval
+  // Payment interval: exactly 15 seconds (15,000ms)
+  // Each 15-second payment is calculated as incomePerMinute / 4
   incomeInterval = window.setInterval(() => {
     let earnedThisTick = 0;
     const newTransactions: Transaction[] = [];
 
     state.ownedBusinesses.forEach(id => {
       const def = BUSINESS_DEFINITIONS.find(b => b.id === id);
-      if (def && def.incomePer15Sec > 0) {
-        earnedThisTick += def.incomePer15Sec;
+      if (def && def.incomePerMinute > 0) {
+        const tickIncome = Math.floor(def.incomePerMinute / 4);
+        earnedThisTick += tickIncome;
         newTransactions.push({
           date: new Date().toISOString(),
-          amount: def.incomePer15Sec,
+          amount: tickIncome,
           description: `${def.name} Income`
         });
       }
