@@ -94,9 +94,9 @@ function App() {
   };
 
   // Derived stats
-  const totalIncomePerMinute = gameState.ownedBusinesses.reduce((total, id) => {
+  const totalIncomePer15Sec = gameState.ownedBusinesses.reduce((total, id) => {
     const b = BUSINESS_DEFINITIONS.find(def => def.id === id);
-    return total + (b?.incomePerMinute || 0);
+    return total + (b?.incomePer15Sec || 0);
   }, 0);
 
   return (
@@ -143,8 +143,8 @@ function App() {
               <span className="font-bold text-[#315B43] text-sm">₦{gameState.cash.toLocaleString()}</span>
             </div>
             <div className="flex items-center justify-between pt-1.5 border-t border-[#D5D4CD]">
-              <span className="text-[#252923]/70 uppercase text-[10px] font-bold tracking-wider">Income/Min</span>
-              <span className="font-bold text-[#315B43]">₦{totalIncomePerMinute.toLocaleString()}</span>
+              <span className="text-[#252923]/70 uppercase text-[10px] font-bold tracking-wider">Income/15s</span>
+              <span className="font-bold text-[#315B43]">₦{totalIncomePer15Sec.toLocaleString()}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-[#252923]/70 uppercase text-[10px] font-bold tracking-wider">Total Earnings</span>
@@ -208,7 +208,7 @@ function App() {
               <div className="h-3 w-px bg-[#D5D4CD]" />
               <div className="flex items-center gap-1.5">
                 <span className="text-[#252923]/60 uppercase tracking-wider text-[10px]">Income</span>
-                <span className="text-[#315B43] font-bold">₦{totalIncomePerMinute.toLocaleString()}/m</span>
+                <span className="text-[#315B43] font-bold">₦{totalIncomePer15Sec.toLocaleString()}/15s</span>
               </div>
             </div>
           </div>
@@ -354,7 +354,7 @@ function App() {
                   <div className="flex flex-col gap-2 pt-3 border-t-2 border-[#D5D4CD]">
                     <div className="flex items-center justify-between">
                       <span className="text-[#252923]/80 font-bold uppercase text-xs">Income Rate</span>
-                      <span className="font-bold text-[#315B43]">₦{currentPanelBusiness.incomePerMinute.toLocaleString()} / min</span>
+                      <span className="font-bold text-[#315B43]">₦{currentPanelBusiness.incomePer15Sec.toLocaleString()} / 15s</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-[#252923]/80 font-bold uppercase text-xs">Price</span>
@@ -365,7 +365,7 @@ function App() {
                   <div className="flex flex-col gap-2 pt-3 border-t-2 border-[#D5D4CD]">
                     <div className="flex items-center justify-between">
                       <span className="text-[#252923]/80 font-bold uppercase text-xs">Income Rate</span>
-                      <span className="font-bold text-[#315B43]">₦{currentPanelBusiness.incomePerMinute.toLocaleString()} / min</span>
+                      <span className="font-bold text-[#315B43]">₦{currentPanelBusiness.incomePer15Sec.toLocaleString()} / 15s</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-[#252923]/80 font-bold uppercase text-xs">Status</span>

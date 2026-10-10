@@ -3,14 +3,14 @@ export interface BusinessDef {
   name: string;
   type: string;
   price: number;
-  incomePerMinute: number;
+  incomePer15Sec: number;
   description: string;
 }
 
 export const BUSINESS_DEFINITIONS: BusinessDef[] = [
-  { id: 'b_corner', name: 'Corner Shop', type: 'Retail', price: 25000, incomePerMinute: 2000, description: 'A small neighborhood shop.' },
-  { id: 'b_restaurant', name: 'Small Restaurant', type: 'Dining', price: 40000, incomePerMinute: 3500, description: 'A cozy diner serving local food.' },
-  { id: 'b_clothing', name: 'Clothing Store', type: 'Retail', price: 35000, incomePerMinute: 2800, description: 'A boutique selling trendy clothes.' }
+  { id: 'b_corner', name: 'Corner Shop', type: 'Retail', price: 25000, incomePer15Sec: 2000, description: 'A small neighborhood shop.' },
+  { id: 'b_restaurant', name: 'Small Restaurant', type: 'Dining', price: 40000, incomePer15Sec: 3500, description: 'A cozy diner serving local food.' },
+  { id: 'b_clothing', name: 'Clothing Store', type: 'Retail', price: 35000, incomePer15Sec: 2800, description: 'A boutique selling trendy clothes.' }
 ];
 
 export interface Transaction {
@@ -129,18 +129,18 @@ let incomeInterval: number | null = null;
 export const startIncomeLoop = () => {
   if (incomeInterval) clearInterval(incomeInterval);
   
-  // 60 seconds per game minute
+  // 15 seconds income interval
   incomeInterval = window.setInterval(() => {
     let earnedThisTick = 0;
     const newTransactions: Transaction[] = [];
 
     state.ownedBusinesses.forEach(id => {
       const def = BUSINESS_DEFINITIONS.find(b => b.id === id);
-      if (def && def.incomePerMinute > 0) {
-        earnedThisTick += def.incomePerMinute;
+      if (def && def.incomePer15Sec > 0) {
+        earnedThisTick += def.incomePer15Sec;
         newTransactions.push({
           date: new Date().toISOString(),
-          amount: def.incomePerMinute,
+          amount: def.incomePer15Sec,
           description: `${def.name} Income`
         });
       }
@@ -154,7 +154,7 @@ export const startIncomeLoop = () => {
       });
       saveGame();
     }
-  }, 60000);
+  }, 15000);
 };
 
 // Start the loop initially
