@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { Player } from '../objects/Player';
 import { CityEnvironment } from '../world/CityEnvironment';
-import { updateGameState } from '../../store/gameState';
+import { updateGameState, getGameState } from '../../store/gameState';
 
 export class MainScene extends Phaser.Scene {
   private player!: Player;
@@ -33,6 +33,18 @@ export class MainScene extends Phaser.Scene {
   update() {
     if (this.player) {
       this.player.update();
+
+      // Check interactions
+      let touchingBusinessId: string | null = null;
+      this.physics.overlap(this.player, this.city.interactionZones, (_, zone) => {
+        const gameObject = zone as Phaser.GameObjects.GameObject;
+        touchingBusinessId = gameObject.getData('businessId');
+      });
+
+      const currentState = getGameState();
+      if (currentState.activeInteraction !== touchingBusinessId && !currentState.panelOpen) {
+        updateGameState({ activeInteraction: touchingBusinessId });
+      }
     }
   }
 }

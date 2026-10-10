@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { GameComponent } from './game/GameComponent';
-import { getGameState, subscribeToGameState } from './store/gameState';
+import { getGameState, subscribeToGameState, updateGameState, BUSINESS_DEFINITIONS, buyBusiness } from './store/gameState';
 import './App.css'; // Just for completeness, but we mainly use tailwind now
 
 function App() {
   const [gameState, setGameState] = useState(getGameState());
   const [isPaused, setIsPaused] = useState(false);
+  const [message, setMessage] = useState<{ text: string, type: 'error' | 'success' } | null>(null);
 
   useEffect(() => {
     const unsubscribe = subscribeToGameState((newState) => {
@@ -13,6 +14,42 @@ function App() {
     });
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === 'e' && gameState.activeInteraction && !gameState.panelOpen && !isPaused) {
+        updateGameState({ panelOpen: true });
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [gameState.activeInteraction, gameState.panelOpen, isPaused]);
+
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => setMessage(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
+
+  const activeBusiness = gameState.activeInteraction 
+    ? BUSINESS_DEFINITIONS.find(b => b.id === gameState.activeInteraction)
+    : null;
+
+  const isOwned = activeBusiness ? gameState.ownedBusinesses.includes(activeBusiness.id) : false;
+
+  const handleBuy = () => {
+    if (!activeBusiness) return;
+    const result = buyBusiness(activeBusiness.id);
+    setMessage({ text: result.message, type: result.success ? 'success' : 'error' });
+    if (result.success) {
+      // stay open but it will now show as owned
+    }
+  };
+
+  const closePanel = () => {
+    updateGameState({ panelOpen: false });
+  };
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-black text-white font-sans">
@@ -50,10 +87,26 @@ function App() {
             </button>
             <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700 p-3 rounded-xl text-xs text-zinc-400 shadow-lg text-right">
               <span className="block mb-1 text-zinc-300 font-semibold">Controls</span>
-              W A S D or Arrows to move
+              W A S D or Arrows to move<br/>
+              Press E to interact
             </div>
           </div>
         </div>
+
+        {/* Interaction Prompt */}
+        {!gameState.panelOpen && gameState.activeInteraction && activeBusiness && (
+          <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 bg-zinc-900/90 backdrop-blur-md border border-zinc-700 px-6 py-3 rounded-full shadow-2xl flex items-center gap-3">
+            <div className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 rounded-md w-8 h-8 flex items-center justify-center font-bold">E</div>
+            <span className="font-medium">Interact with {activeBusiness.name}</span>
+          </div>
+        )}
+
+        {/* Messages */}
+        {message && (
+          <div className={`absolute top-10 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg shadow-2xl font-bold border transition-all ${message.type === 'error' ? 'bg-red-900/90 border-red-500 text-red-100' : 'bg-emerald-900/90 border-emerald-500 text-emerald-100'}`}>
+            {message.text}
+          </div>
+        )}
 
         {/* Optional Pause Overlay */}
         {isPaused && (
@@ -67,6 +120,69 @@ function App() {
               >
                 RESUME
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Business Panel Overlay */}
+        {gameState.panelOpen && activeBusiness && (
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-30 pointer-events-auto">
+            <div className="bg-zinc-900 border border-zinc-700 p-6 rounded-2xl shadow-2xl w-full max-w-md pointer-events-auto">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-white leading-tight">{activeBusiness.name}</h2>
+                  <span className="text-sm font-medium text-zinc-400 uppercase tracking-wider">{activeBusiness.type}</span>
+                </div>
+                <div className={`px-3 py-1 rounded-full text-xs font-bold border ${isOwned ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' : 'bg-zinc-800 text-zinc-300 border-zinc-600'}`}>
+                  {isOwned ? 'OWNED' : 'FOR SALE'}
+                </div>
+              </div>
+              
+              <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800 mb-6">
+                <p className="text-zinc-300 mb-4 text-sm leading-relaxed">{activeBusiness.description}</p>
+                
+                {!isOwned ? (
+                  <div className="flex items-center justify-between pt-3 border-t border-zinc-800">
+                    <span className="text-zinc-400">Price</span>
+                    <span className="text-xl font-bold text-emerald-400">₦{activeBusiness.price.toLocaleString()}</span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2 pt-3 border-t border-zinc-800">
+                    <div className="flex items-center justify-between">
+                      <span className="text-zinc-400">Current Level</span>
+                      <span className="font-bold text-white">1</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-zinc-400">Status</span>
+                      <span className="font-bold text-emerald-400">Operational</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-3">
+                <button 
+                  className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-medium py-3 px-4 rounded-lg transition-colors border border-zinc-700"
+                  onClick={closePanel}
+                >
+                  {isOwned ? 'CLOSE' : 'CANCEL'}
+                </button>
+                {!isOwned ? (
+                  <button 
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-lg transition-colors shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+                    onClick={handleBuy}
+                  >
+                    BUY BUSINESS
+                  </button>
+                ) : (
+                  <button 
+                    className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-lg transition-colors shadow-[0_0_15px_rgba(79,70,229,0.4)]"
+                    onClick={closePanel}
+                  >
+                    INSPECT (LATER)
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}

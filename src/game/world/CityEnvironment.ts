@@ -9,7 +9,10 @@ export class CityEnvironment {
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
     this.buildings = this.scene.physics.add.staticGroup();
+    this.interactionZones = this.scene.physics.add.staticGroup();
   }
+
+  public interactionZones: Phaser.Physics.Arcade.StaticGroup;
 
   build() {
     const { scene, worldWidth, worldHeight } = this;
@@ -61,17 +64,57 @@ export class CityEnvironment {
       roadGraphics.fillStyle(0x333333, 1);
     }
 
-    // Build commercial buildings and shops in the blocks
+    // Build regular commercial buildings and shops in the blocks
+    // Also place our 3 specific businesses at known locations
+    let placedCorner = false;
+    let placedRest = false;
+    let placedCloth = false;
+
     for (let x = roadWidth; x < worldWidth; x += blockSize + roadWidth) {
       for (let y = roadWidth; y < worldHeight; y += blockSize + roadWidth) {
         // We are inside a block. Let's create a few buildings
-        this.createBuilding(x + 20, y + 20, blockSize - 40, blockSize / 2 - 30);
+        if (!placedCorner && x > 200 && y > 200) {
+          this.createSpecificBusiness(x + 20, y + 20, blockSize - 40, blockSize / 2 - 30, 'Corner Shop', 'b_corner');
+          placedCorner = true;
+        } else if (!placedRest && x > 600 && y > 200) {
+          this.createSpecificBusiness(x + 20, y + 20, blockSize - 40, blockSize / 2 - 30, 'Small Restaurant', 'b_restaurant');
+          placedRest = true;
+        } else if (!placedCloth && x > 200 && y > 600) {
+          this.createSpecificBusiness(x + 20, y + 20, blockSize - 40, blockSize / 2 - 30, 'Clothing Store', 'b_clothing');
+          placedCloth = true;
+        } else {
+          this.createBuilding(x + 20, y + 20, blockSize - 40, blockSize / 2 - 30);
+        }
+        
         this.createBuilding(x + 20, y + blockSize / 2 + 10, blockSize - 40, blockSize / 2 - 30);
       }
     }
   }
 
-  private createBuilding(x: number, y: number, width: number, height: number) {
+  private createSpecificBusiness(x: number, y: number, width: number, height: number, name: string, id: string) {
+    this.createBuilding(x, y, width, height, 0xf4a261); // Special color
+    
+    // Add a text label
+    this.scene.add.text(x + width / 2, y + height / 2, name, {
+      fontFamily: 'sans-serif',
+      fontSize: '16px',
+      color: '#ffffff',
+      stroke: '#000000',
+      strokeThickness: 3
+    }).setOrigin(0.5);
+
+    // Add interaction zone near the entrance (bottom)
+    const zoneWidth = 80;
+    const zoneHeight = 40;
+    const interactZone = this.scene.add.zone(x + width / 2, y + height + zoneHeight / 2, zoneWidth, zoneHeight);
+    this.scene.physics.add.existing(interactZone, true);
+    
+    // Add ID to data so we know which business it is
+    interactZone.setData('businessId', id);
+    this.interactionZones.add(interactZone);
+  }
+
+  private createBuilding(x: number, y: number, width: number, height: number, forceColor?: number) {
     const bGraphics = this.scene.add.graphics();
     // Shadow
     bGraphics.fillStyle(0x000000, 0.3);
@@ -79,7 +122,7 @@ export class CityEnvironment {
     
     // Main building color (randomized a bit for variety)
     const colors = [0x5c6b73, 0x8f9b9f, 0x3d5a80, 0x98c1d9];
-    const color = colors[Math.floor(Math.random() * colors.length)];
+    const color = forceColor !== undefined ? forceColor : colors[Math.floor(Math.random() * colors.length)];
     bGraphics.fillStyle(color, 1);
     bGraphics.fillRect(x, y, width, height);
     
