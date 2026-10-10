@@ -17,6 +17,7 @@ function App() {
   const [isPaused, setIsPaused] = useState(false);
   const [showDirectory, setShowDirectory] = useState(false);
   const [showLedger, setShowLedger] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [message, setMessage] = useState<{ text: string, type: 'error' | 'success' } | null>(null);
 
   useEffect(() => {
@@ -28,14 +29,37 @@ function App() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === 'e' && gameState.activeInteraction && !gameState.panelOpen && !isPaused) {
+      if (e.key === 'Escape') {
+        if (gameState.panelOpen) {
+          updateGameState({ panelOpen: false });
+        } else if (showDirectory) {
+          setShowDirectory(false);
+        } else if (showLedger) {
+          setShowLedger(false);
+        } else if (isPaused) {
+          setIsPaused(false);
+        } else if (isMenuOpen) {
+          setIsMenuOpen(false);
+        }
+        return;
+      }
+
+      if (
+        e.key.toLowerCase() === 'e' && 
+        gameState.activeInteraction && 
+        !gameState.panelOpen && 
+        !isPaused && 
+        !showDirectory && 
+        !showLedger &&
+        !isMenuOpen
+      ) {
         e.preventDefault();
         updateGameState({ panelOpen: true });
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState.activeInteraction, gameState.panelOpen, isPaused]);
+  }, [gameState.activeInteraction, gameState.panelOpen, isPaused, showDirectory, showLedger, isMenuOpen]);
 
   useEffect(() => {
     if (message) {
@@ -82,57 +106,115 @@ function App() {
         <GameComponent />
       </div>
 
+      {/* Backdrop for Menu Overlay on Mobile / Desktop */}
+      {isMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-[#252923]/60 z-30 pointer-events-auto transition-opacity"
+          onClick={() => setIsMenuOpen(false)}
+          aria-label="Close menu backdrop"
+        />
+      )}
+
+      {/* Expanded Navigation Sidebar */}
+      {isMenuOpen && (
+        <div className="fixed top-4 left-4 z-40 w-64 max-w-[calc(100vw-32px)] bg-[#FFFFFF] border-2 border-[#D5D4CD] p-5 rounded shadow-xl pointer-events-auto flex flex-col gap-4">
+          <div className="flex justify-between items-center border-b-2 border-[#D5D4CD] pb-3">
+            <div>
+              <h1 className="text-lg font-bold uppercase tracking-wider text-[#252923]">STREET TO CEO</h1>
+              <span className="text-[10px] font-bold uppercase text-[#252923]/60 tracking-wider">Navigation Panel</span>
+            </div>
+            <button 
+              className="w-8 h-8 rounded border-2 border-[#D5D4CD] bg-[#F4F1E8] hover:bg-[#D5D4CD] text-[#252923] font-bold flex items-center justify-center transition-colors text-sm"
+              onClick={() => setIsMenuOpen(false)}
+              title="Close Menu (Esc)"
+              aria-label="Close Menu"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-2.5 text-xs font-medium bg-[#F4F1E8] p-3.5 rounded border border-[#D5D4CD]">
+            <div className="flex items-center justify-between">
+              <span className="text-[#252923]/70 uppercase text-[10px] font-bold tracking-wider">Location</span>
+              <span className="font-semibold text-[#252923] text-xs">{gameState.location}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[#252923]/70 uppercase text-[10px] font-bold tracking-wider">Cash</span>
+              <span className="font-bold text-[#315B43] text-sm">₦{gameState.cash.toLocaleString()}</span>
+            </div>
+            <div className="flex items-center justify-between pt-1.5 border-t border-[#D5D4CD]">
+              <span className="text-[#252923]/70 uppercase text-[10px] font-bold tracking-wider">Income/Min</span>
+              <span className="font-bold text-[#315B43]">₦{totalIncomePerMinute.toLocaleString()}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[#252923]/70 uppercase text-[10px] font-bold tracking-wider">Total Earnings</span>
+              <span className="font-semibold text-[#252923]">₦{gameState.totalEarnings.toLocaleString()}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[#252923]/70 uppercase text-[10px] font-bold tracking-wider">Businesses Owned</span>
+              <span className="font-semibold text-[#252923]">{gameState.ownedBusinesses.length}</span>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2 pt-1">
+            <button 
+              className="bg-[#FFFFFF] hover:bg-[#F4F1E8] text-[#252923] font-bold py-2.5 px-4 rounded border-2 border-[#D5D4CD] transition-colors shadow-sm text-xs flex items-center justify-between"
+              onClick={() => setShowDirectory(true)}
+            >
+              <span>BUSINESS DIRECTORY</span>
+              <span className="text-[#B58A45] font-bold">→</span>
+            </button>
+            <button 
+              className="bg-[#FFFFFF] hover:bg-[#F4F1E8] text-[#252923] font-bold py-2.5 px-4 rounded border-2 border-[#D5D4CD] transition-colors shadow-sm text-xs flex items-center justify-between"
+              onClick={() => setShowLedger(true)}
+            >
+              <span>FINANCIAL LEDGER</span>
+              <span className="text-[#B58A45] font-bold">→</span>
+            </button>
+          </div>
+
+          <button 
+            className="mt-1 w-full bg-[#D5D4CD]/50 hover:bg-[#D5D4CD] text-[#252923] font-bold py-2 rounded text-xs transition-colors uppercase tracking-wider"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Collapse Menu
+          </button>
+        </div>
+      )}
+
       {/* HUD Layer */}
       <div className="absolute inset-0 z-10 pointer-events-none p-6 flex flex-col justify-between">
         
         {/* Top HUD */}
-        <div className="flex justify-between items-start pointer-events-auto">
-          {/* Main Dashboard Card */}
-          <div className="flex flex-col gap-4">
-            <div className="bg-[#FFFFFF] border-2 border-[#D5D4CD] p-5 rounded shadow-sm w-72">
-              <h1 className="text-xl font-bold uppercase tracking-wider text-[#252923] mb-4 border-b-2 border-[#D5D4CD] pb-2">STREET TO CEO</h1>
-              <div className="flex flex-col gap-3 text-sm font-medium">
-                <div className="flex items-center justify-between">
-                  <span className="text-[#252923]/70 uppercase text-xs font-bold">Location</span>
-                  <span className="font-semibold text-[#252923]">{gameState.location}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[#252923]/70 uppercase text-xs font-bold">Cash</span>
-                  <span className="font-bold text-[#315B43] text-base">₦{gameState.cash.toLocaleString()}</span>
-                </div>
-                <div className="flex items-center justify-between pt-2 border-t border-[#D5D4CD]">
-                  <span className="text-[#252923]/70 uppercase text-xs font-bold">Income/Min</span>
-                  <span className="font-bold text-[#315B43]">₦{totalIncomePerMinute.toLocaleString()}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[#252923]/70 uppercase text-xs font-bold">Total Earnings</span>
-                  <span className="font-semibold text-[#252923]">₦{gameState.totalEarnings.toLocaleString()}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[#252923]/70 uppercase text-xs font-bold">Businesses Owned</span>
-                  <span className="font-semibold text-[#252923]">{gameState.ownedBusinesses.length}</span>
-                </div>
+        <div className="flex justify-between items-start">
+          {/* Top Left Collapsed Menu Button & Cash Chip */}
+          <div className="flex items-center gap-3 pointer-events-auto">
+            <button 
+              className="w-12 h-12 bg-[#FFFFFF] hover:bg-[#F4F1E8] border-2 border-[#D5D4CD] rounded shadow-sm flex items-center justify-center text-[#252923] transition-colors focus:outline-none focus:ring-2 focus:ring-[#315B43]"
+              onClick={() => setIsMenuOpen(true)}
+              title="Open Menu"
+              aria-label="Open Menu"
+            >
+              <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+              </svg>
+            </button>
+            
+            <div className="bg-[#FFFFFF] border-2 border-[#D5D4CD] px-3.5 py-2.5 rounded shadow-sm text-xs font-bold flex items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[#252923]/60 uppercase tracking-wider text-[10px]">Cash</span>
+                <span className="text-[#315B43] font-bold text-sm">₦{gameState.cash.toLocaleString()}</span>
               </div>
-            </div>
-
-            <div className="flex gap-2">
-              <button 
-                className="bg-[#FFFFFF] hover:bg-[#F4F1E8] text-[#252923] font-bold py-2 px-4 rounded border-2 border-[#D5D4CD] transition-colors shadow-sm flex-1 text-xs"
-                onClick={() => setShowDirectory(true)}
-              >
-                BUSINESSES
-              </button>
-              <button 
-                className="bg-[#FFFFFF] hover:bg-[#F4F1E8] text-[#252923] font-bold py-2 px-4 rounded border-2 border-[#D5D4CD] transition-colors shadow-sm flex-1 text-xs"
-                onClick={() => setShowLedger(true)}
-              >
-                LEDGER
-              </button>
+              <div className="h-3 w-px bg-[#D5D4CD]" />
+              <div className="flex items-center gap-1.5">
+                <span className="text-[#252923]/60 uppercase tracking-wider text-[10px]">Income</span>
+                <span className="text-[#315B43] font-bold">₦{totalIncomePerMinute.toLocaleString()}/m</span>
+              </div>
             </div>
           </div>
 
           {/* Controls Hint & Pause */}
-          <div className="flex flex-col items-end gap-2">
+          <div className="flex flex-col items-end gap-2 pointer-events-auto">
             <button 
               className="bg-[#FFFFFF] hover:bg-[#F4F1E8] border-2 border-[#D5D4CD] px-4 py-2 rounded text-sm font-bold tracking-wide text-[#252923] shadow-sm transition-colors"
               onClick={() => setIsPaused(!isPaused)}
