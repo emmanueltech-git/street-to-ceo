@@ -2,7 +2,12 @@ import Phaser from 'phaser';
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
-  private wasd?: any;
+  private wasd?: {
+    up: Phaser.Input.Keyboard.Key;
+    down: Phaser.Input.Keyboard.Key;
+    left: Phaser.Input.Keyboard.Key;
+    right: Phaser.Input.Keyboard.Key;
+  };
   private speed = 200;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
@@ -43,7 +48,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         down: Phaser.Input.Keyboard.KeyCodes.S,
         left: Phaser.Input.Keyboard.KeyCodes.A,
         right: Phaser.Input.Keyboard.KeyCodes.D
-      });
+      }) as {
+        up: Phaser.Input.Keyboard.Key;
+        down: Phaser.Input.Keyboard.Key;
+        left: Phaser.Input.Keyboard.Key;
+        right: Phaser.Input.Keyboard.Key;
+      };
       // Prevent Phaser from swallowing keyboard input that might be meant for UI
       scene.input.keyboard.disableGlobalCapture();
     }
