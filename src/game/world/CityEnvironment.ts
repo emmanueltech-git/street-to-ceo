@@ -9,6 +9,7 @@ export class CityEnvironment {
   public worldWidth = 2000;
   public worldHeight = 2000;
   private waypointGraphics?: Phaser.GameObjects.Graphics;
+  private upgradeBadges: Map<string, Phaser.GameObjects.Text> = new Map();
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -471,20 +472,44 @@ export class CityEnvironment {
   public updateWaypoint(waypoint: { x: number; y: number; name: string } | null) {
     if (!this.waypointGraphics) return;
     this.waypointGraphics.clear();
-
     if (!waypoint) return;
-
-    // Draw glowing beacon ring at target coordinates
     const time = this.scene.time.now;
     const pulseRadius = 24 + Math.sin(time / 200) * 6;
-
     this.waypointGraphics.lineStyle(3, 0xb58a45, 0.9);
     this.waypointGraphics.strokeCircle(waypoint.x, waypoint.y, pulseRadius);
-
     this.waypointGraphics.fillStyle(0xb58a45, 0.25);
     this.waypointGraphics.fillCircle(waypoint.x, waypoint.y, pulseRadius);
-
     this.waypointGraphics.fillStyle(0x315b43, 1);
     this.waypointGraphics.fillCircle(waypoint.x, waypoint.y, 6);
+  }
+
+  /**
+   * Update or create the upgrade level badge for a business building.
+   * Badges show gold star symbols above the entrance for levels 2-5.
+   */
+  public setUpgradeBadge(businessId: string, level: number): void {
+    const def = BUSINESS_DEFINITIONS.find(b => b.id === businessId);
+    if (!def) return;
+
+    const stars = level >= 2 ? '★'.repeat(level - 1) : '';
+    const bx = def.worldX + def.width / 2;
+    const by = def.worldY - 14;
+
+    const existing = this.upgradeBadges.get(businessId);
+    if (existing) {
+      existing.setText(stars);
+      return;
+    }
+
+    if (level >= 2) {
+      const badge = this.scene.add.text(bx, by, stars, {
+        fontSize: '14px',
+        color: '#B58A45',
+        stroke: '#252923',
+        strokeThickness: 3,
+        fontStyle: 'bold',
+      }).setOrigin(0.5, 1).setDepth(10);
+      this.upgradeBadges.set(businessId, badge);
+    }
   }
 }

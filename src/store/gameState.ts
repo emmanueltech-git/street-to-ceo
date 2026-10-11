@@ -1,10 +1,13 @@
+﻿// ─── INTERFACES ──────────────────────────────────────────────────────────────
+
 export interface BusinessDef {
   id: string;
   name: string;
   type: string;
+  category: string;
   price: number;
-  incomePerMinute: number; // Gross income per game minute
-  operatingCostPerMinute: number; // Operating costs per game minute
+  incomePerMinute: number;
+  operatingCostPerMinute: number;
   description: string;
   worldX: number;
   worldY: number;
@@ -13,309 +16,43 @@ export interface BusinessDef {
   accentColor: number;
   roofColor: number;
   signBgColor: number;
-  category: string;
 }
 
-export const BUSINESS_DEFINITIONS: BusinessDef[] = [
-  // 3 Original Businesses (Preserved prices & gross incomes, sensible operating costs)
-  {
-    id: 'b_corner',
-    name: 'Corner Shop',
-    type: 'Retail',
-    category: 'Retail & Daily Goods',
-    price: 25000,
-    incomePerMinute: 2000, // ₦500 / 15s
-    operatingCostPerMinute: 600, // ₦150 / 15s (Net: ₦1,400/min, ₦350/15s)
-    description: 'A neighborhood convenience store stocked with cold beverages, daily groceries, and provisions.',
-    worldX: 120,
-    worldY: 120,
-    width: 260,
-    height: 120,
-    accentColor: 0x315b43,
-    roofColor: 0x252923,
-    signBgColor: 0x315b43
-  },
-  {
-    id: 'b_restaurant',
-    name: 'Small Restaurant',
-    type: 'Dining',
-    category: 'Food & Hospitality',
-    price: 40000,
-    incomePerMinute: 3500, // ₦875 / 15s
-    operatingCostPerMinute: 1100, // ₦275 / 15s (Net: ₦2,400/min, ₦600/15s)
-    description: 'A vibrant street diner serving smoky jollof rice, peppered meats, and freshly fried plantains.',
-    worldX: 520,
-    worldY: 120,
-    width: 260,
-    height: 120,
-    accentColor: 0xb58a45,
-    roofColor: 0x42281d,
-    signBgColor: 0x8b3a2b
-  },
-  {
-    id: 'b_clothing',
-    name: 'Clothing Store',
-    type: 'Retail',
-    category: 'Fashion & Apparel',
-    price: 35000,
-    incomePerMinute: 2800, // ₦700 / 15s
-    operatingCostPerMinute: 800, // ₦200 / 15s (Net: ₦2,000/min, ₦500/15s)
-    description: 'A contemporary boutique showcasing vibrant native fabrics, streetwear sneakers, and tailoring.',
-    worldX: 920,
-    worldY: 120,
-    width: 260,
-    height: 120,
-    accentColor: 0x3b5266,
-    roofColor: 0x22303c,
-    signBgColor: 0x2c4a6f
-  },
+export interface UpgradeTierDef {
+  level: number;
+  name: string;
+  grossMult: number;
+  costMult: number;
+}
 
-  // 14 New Businesses (Total 17)
-  {
-    id: 'b_phone',
-    name: 'Phone Accessories Shop',
-    type: 'Tech Retail',
-    category: 'Technology & Gadgets',
-    price: 45000,
-    incomePerMinute: 3600, // ₦900 / 15s
-    operatingCostPerMinute: 1200, // ₦300 / 15s (Net: ₦2,400/min, ₦600/15s)
-    description: 'Brisk counter selling fast chargers, braided cables, tempered glass shields, and earbuds.',
-    worldX: 1320,
-    worldY: 120,
-    width: 260,
-    height: 120,
-    accentColor: 0x0284c7,
-    roofColor: 0x0f172a,
-    signBgColor: 0x0369a1
-  },
-  {
-    id: 'b_barber',
-    name: 'Barber Shop',
-    type: 'Personal Care',
-    category: 'Local Services',
-    price: 60000,
-    incomePerMinute: 4800, // ₦1,200 / 15s
-    operatingCostPerMinute: 1800, // ₦450 / 15s (Net: ₦3,000/min, ₦750/15s)
-    description: 'Trendy neighborhood barbershop humming with Afrobeats, sharp fades, and beard trims.',
-    worldX: 1720,
-    worldY: 120,
-    width: 260,
-    height: 120,
-    accentColor: 0xbe123c,
-    roofColor: 0x334155,
-    signBgColor: 0x9f1239
-  },
-  {
-    id: 'b_bakery',
-    name: 'Bakery',
-    type: 'Food Production',
-    category: 'Food & Hospitality',
-    price: 75000,
-    incomePerMinute: 6400, // ₦1,600 / 15s
-    operatingCostPerMinute: 2800, // ₦700 / 15s (Net: ₦3,600/min, ₦900/15s)
-    description: 'Commercial bakery oven churning out fluffy sweet Agege loaves, golden meat pies, and donuts.',
-    worldX: 120,
-    worldY: 520,
-    width: 260,
-    height: 120,
-    accentColor: 0xd97706,
-    roofColor: 0x451a03,
-    signBgColor: 0xb45309
-  },
-  {
-    id: 'b_carwash',
-    name: 'Car Wash',
-    type: 'Auto Services',
-    category: 'Automotive & Logistics',
-    price: 85000,
-    incomePerMinute: 6800, // ₦1,700 / 15s
-    operatingCostPerMinute: 2400, // ₦600 / 15s (Net: ₦4,400/min, ₦1,100/15s)
-    description: 'Active multi-bay jet wash cleaning sedans, commercial minibuses, and luxury SUVs.',
-    worldX: 520,
-    worldY: 520,
-    width: 260,
-    height: 120,
-    accentColor: 0x0891b2,
-    roofColor: 0x164e63,
-    signBgColor: 0x0e7490
-  },
-  {
-    id: 'b_farm',
-    name: 'Farm',
-    type: 'Agriculture',
-    category: 'Agriculture & Food Supply',
-    price: 90000,
-    incomePerMinute: 7200, // ₦1,800 / 15s
-    operatingCostPerMinute: 2800, // ₦700 / 15s (Net: ₦4,400/min, ₦1,100/15s)
-    description: 'Sustainable peri-urban agricultural hub producing organic greens, poultry crates, and tubers.',
-    worldX: 920,
-    worldY: 520,
-    width: 260,
-    height: 120,
-    accentColor: 0x4d7c0f,
-    roofColor: 0x27272a,
-    signBgColor: 0x3f6212
-  },
-  {
-    id: 'b_gym',
-    name: 'Gym',
-    type: 'Fitness & Health',
-    category: 'Health & Wellness',
-    price: 100000,
-    incomePerMinute: 8000, // ₦2,000 / 15s
-    operatingCostPerMinute: 3200, // ₦800 / 15s (Net: ₦4,800/min, ₦1,200/15s)
-    description: 'Heavy iron fitness center packed with power racks, boxing bags, cardio treadmills, and coaches.',
-    worldX: 1320,
-    worldY: 520,
-    width: 260,
-    height: 120,
-    accentColor: 0xeab308,
-    roofColor: 0x18181b,
-    signBgColor: 0xca8a04
-  },
-  {
-    id: 'b_pharmacy',
-    name: 'Pharmacy',
-    type: 'Healthcare',
-    category: 'Health & Wellness',
-    price: 120000,
-    incomePerMinute: 9000, // ₦2,250 / 15s
-    operatingCostPerMinute: 4200, // ₦1,050 / 15s (Net: ₦4,800/min, ₦1,200/15s)
-    description: 'Certified community chemist dispensing vital prescriptions, supplements, and first-aid supplies.',
-    worldX: 1720,
-    worldY: 520,
-    width: 260,
-    height: 120,
-    accentColor: 0x16a34a,
-    roofColor: 0x1e293b,
-    signBgColor: 0x15803d
-  },
-  {
-    id: 'b_supermarket',
-    name: 'Supermarket',
-    type: 'Grocery Retail',
-    category: 'Retail & Daily Goods',
-    price: 150000,
-    incomePerMinute: 12000, // ₦3,000 / 15s
-    operatingCostPerMinute: 6000, // ₦1,500 / 15s (Net: ₦6,000/min, ₦1,500/15s)
-    description: 'Full-service grocery store with checkout scanners, chilled dairy cases, and bulk household aisles.',
-    worldX: 120,
-    worldY: 920,
-    width: 260,
-    height: 120,
-    accentColor: 0x2563eb,
-    roofColor: 0x1e3a8a,
-    signBgColor: 0x1d4ed8
-  },
-  {
-    id: 'b_electronics',
-    name: 'Electronics Store',
-    type: 'Consumer Tech',
-    category: 'Technology & Gadgets',
-    price: 180000,
-    incomePerMinute: 14400, // ₦3,600 / 15s
-    operatingCostPerMinute: 6400, // ₦1,600 / 15s (Net: ₦8,000/min, ₦2,000/15s)
-    description: 'Tech showroom displaying 4K smart screens, solar inverter batteries, laptops, and audio rigs.',
-    worldX: 520,
-    worldY: 920,
-    width: 260,
-    height: 120,
-    accentColor: 0x6366f1,
-    roofColor: 0x0f172a,
-    signBgColor: 0x4338ca
-  },
-  {
-    id: 'b_delivery',
-    name: 'Delivery Company',
-    type: 'Logistics',
-    category: 'Automotive & Logistics',
-    price: 220000,
-    incomePerMinute: 16000, // ₦4,000 / 15s
-    operatingCostPerMinute: 8000, // ₦2,000 / 15s (Net: ₦8,000/min, ₦2,000/15s)
-    description: 'High-speed dispatch depot coordinating motorbikes and courier vans delivering goods citywide.',
-    worldX: 920,
-    worldY: 920,
-    width: 260,
-    height: 120,
-    accentColor: 0xe11d48,
-    roofColor: 0x334155,
-    signBgColor: 0xbe123c
-  },
-  {
-    id: 'b_fuel',
-    name: 'Fuel Station',
-    type: 'Energy & Fuel',
-    category: 'Infrastructure & Energy',
-    price: 250000,
-    incomePerMinute: 20000, // ₦5,000 / 15s
-    operatingCostPerMinute: 12000, // ₦3,000 / 15s (Net: ₦8,000/min, ₦2,000/15s)
-    description: 'High-volume petroleum filling station with twin canopy islands, diesel pumps, and mart.',
-    worldX: 1320,
-    worldY: 920,
-    width: 260,
-    height: 120,
-    accentColor: 0xd97706,
-    roofColor: 0x292524,
-    signBgColor: 0xb45309
-  },
-  {
-    id: 'b_realestate',
-    name: 'Real Estate Agency',
-    type: 'Property Brokerage',
-    category: 'Corporate & Finance',
-    price: 300000,
-    incomePerMinute: 24000, // ₦6,000 / 15s
-    operatingCostPerMinute: 10000, // ₦2,500 / 15s (Net: ₦14,000/min, ₦3,500/15s)
-    description: 'Elite property brokerage managing luxury duplex developments, commercial leases, and land deals.',
-    worldX: 1720,
-    worldY: 920,
-    width: 260,
-    height: 120,
-    accentColor: 0xb58a45,
-    roofColor: 0x1f2937,
-    signBgColor: 0x854d0e
-  },
-  {
-    id: 'b_construction',
-    name: 'Construction Company',
-    type: 'Civil Works',
-    category: 'Infrastructure & Energy',
-    price: 350000,
-    incomePerMinute: 28000, // ₦7,000 / 15s
-    operatingCostPerMinute: 16000, // ₦4,000 / 15s (Net: ₦12,000/min, ₦3,000/15s)
-    description: 'Heavy engineering contractor running tower cranes, cement mixing trucks, and roadwork crews.',
-    worldX: 120,
-    worldY: 1320,
-    width: 260,
-    height: 120,
-    accentColor: 0xf59e0b,
-    roofColor: 0x1c1917,
-    signBgColor: 0xd97706
-  },
-  {
-    id: 'b_hotel',
-    name: 'Hotel',
-    type: 'Hospitality',
-    category: 'Food & Hospitality',
-    price: 400000,
-    incomePerMinute: 32000, // ₦8,000 / 15s
-    operatingCostPerMinute: 20000, // ₦5,000 / 15s (Net: ₦12,000/min, ₦3,000/15s)
-    description: 'Prestige multi-level hotel palace with luxury suites, banquet halls, and panoramic rooftop dining.',
-    worldX: 520,
-    worldY: 1320,
-    width: 260,
-    height: 130,
-    accentColor: 0x315b43,
-    roofColor: 0x1e1b4b,
-    signBgColor: 0x1e3a8a
-  }
-];
+export interface SkinDef {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  description: string;
+  headColor: number;
+  bodyTopColor: number;
+  bodyBottomColor: number;
+  shoesColor: number;
+  accentColor: number;
+  hatType: 'none' | 'cap' | 'traditional';
+  hatColor?: number;
+}
+
+export interface MilestoneDef {
+  id: string;
+  name: string;
+  description: string;
+  xpReward: number;
+  condition: (state: GameState) => boolean;
+}
 
 export interface Transaction {
   date: string;
   amount: number;
   description: string;
-  type?: 'revenue' | 'expense' | 'purchase' | 'system';
+  type?: 'revenue' | 'expense' | 'purchase' | 'upgrade' | 'skin' | 'system';
   businessId?: string;
 }
 
@@ -333,11 +70,127 @@ export interface GameState {
   ledger: Transaction[];
   activeInteraction: string | null;
   panelOpen: boolean;
-  totalEarnings: number; // Cumulative Gross Revenue
-  totalExpenses: number; // Cumulative Operating Expenses
-  suspendedBusinesses: string[]; // Businesses suspended due to inability to pay operating costs
+  totalEarnings: number;
+  totalExpenses: number;
+  suspendedBusinesses: string[];
+  businessUpgrades: Record<string, number>;
+  businessUpgradeSpend: Record<string, number>;
+  businessRevenue: Record<string, number>;
+  businessExpenses: Record<string, number>;
+  unlockedSkins: string[];
+  equippedOutfit: string;
+  playerXP: number;
+  playerLevel: number;
+  completedMilestones: string[];
+  pendingMilestoneNotifications: string[];
   targetWaypoint: Waypoint | null;
 }
+
+// ─── BUSINESS DEFINITIONS ────────────────────────────────────────────────────
+
+export const BUSINESS_DEFINITIONS: BusinessDef[] = [
+  { id:'b_corner',       name:'Corner Shop',            type:'Retail',            category:'Retail & Daily Goods',       price:25000,  incomePerMinute:2000,  operatingCostPerMinute:600,   description:'A neighborhood convenience store stocked with cold beverages, daily groceries, and provisions.',                                     worldX:120,  worldY:120,  width:260, height:120, accentColor:0x315b43, roofColor:0x252923, signBgColor:0x315b43 },
+  { id:'b_restaurant',   name:'Small Restaurant',       type:'Dining',            category:'Food & Hospitality',         price:40000,  incomePerMinute:3500,  operatingCostPerMinute:1100,  description:'A vibrant street diner serving smoky jollof rice, peppered meats, and freshly fried plantains.',                                       worldX:520,  worldY:120,  width:260, height:120, accentColor:0xb58a45, roofColor:0x42281d, signBgColor:0x8b3a2b },
+  { id:'b_clothing',     name:'Clothing Store',         type:'Retail',            category:'Fashion & Apparel',          price:35000,  incomePerMinute:2800,  operatingCostPerMinute:800,   description:'A contemporary boutique showcasing vibrant native fabrics, streetwear sneakers, and tailoring.',                                       worldX:920,  worldY:120,  width:260, height:120, accentColor:0x3b5266, roofColor:0x22303c, signBgColor:0x2c4a6f },
+  { id:'b_phone',        name:'Phone Accessories Shop', type:'Tech Retail',       category:'Technology & Gadgets',       price:45000,  incomePerMinute:3600,  operatingCostPerMinute:1200,  description:'Brisk counter selling fast chargers, braided cables, tempered glass shields, and earbuds.',                                             worldX:1320, worldY:120,  width:260, height:120, accentColor:0x0284c7, roofColor:0x0f172a, signBgColor:0x0369a1 },
+  { id:'b_barber',       name:'Barber Shop',            type:'Personal Care',     category:'Local Services',             price:60000,  incomePerMinute:4800,  operatingCostPerMinute:1800,  description:'Trendy neighborhood barbershop humming with Afrobeats, sharp fades, and beard trims.',                                                  worldX:1720, worldY:120,  width:260, height:120, accentColor:0xbe123c, roofColor:0x334155, signBgColor:0x9f1239 },
+  { id:'b_bakery',       name:'Bakery',                 type:'Food Production',   category:'Food & Hospitality',         price:75000,  incomePerMinute:6400,  operatingCostPerMinute:2800,  description:'Commercial bakery oven churning out fluffy Agege loaves, golden meat pies, and donuts.',                                               worldX:120,  worldY:520,  width:260, height:120, accentColor:0xd97706, roofColor:0x451a03, signBgColor:0xb45309 },
+  { id:'b_carwash',      name:'Car Wash',               type:'Auto Services',     category:'Automotive & Logistics',     price:85000,  incomePerMinute:6800,  operatingCostPerMinute:2400,  description:'Active multi-bay jet wash cleaning sedans, commercial minibuses, and luxury SUVs.',                                                    worldX:520,  worldY:520,  width:260, height:120, accentColor:0x0891b2, roofColor:0x164e63, signBgColor:0x0e7490 },
+  { id:'b_farm',         name:'Farm',                   type:'Agriculture',       category:'Agriculture & Food Supply',  price:90000,  incomePerMinute:7200,  operatingCostPerMinute:2800,  description:'Sustainable peri-urban agricultural hub producing organic greens, poultry crates, and tubers.',                                         worldX:920,  worldY:520,  width:260, height:120, accentColor:0x4d7c0f, roofColor:0x27272a, signBgColor:0x3f6212 },
+  { id:'b_gym',          name:'Gym',                    type:'Fitness & Health',  category:'Health & Wellness',          price:100000, incomePerMinute:8000,  operatingCostPerMinute:3200,  description:'Heavy iron fitness center packed with power racks, boxing bags, cardio treadmills, and coaches.',                                        worldX:1320, worldY:520,  width:260, height:120, accentColor:0xeab308, roofColor:0x18181b, signBgColor:0xca8a04 },
+  { id:'b_pharmacy',     name:'Pharmacy',               type:'Healthcare',        category:'Health & Wellness',          price:120000, incomePerMinute:9000,  operatingCostPerMinute:4200,  description:'Certified community chemist dispensing vital prescriptions, supplements, and first-aid supplies.',                                       worldX:1720, worldY:520,  width:260, height:120, accentColor:0x16a34a, roofColor:0x1e293b, signBgColor:0x15803d },
+  { id:'b_supermarket',  name:'Supermarket',            type:'Grocery Retail',    category:'Retail & Daily Goods',       price:150000, incomePerMinute:12000, operatingCostPerMinute:6000,  description:'Full-service grocery store with checkout scanners, chilled dairy cases, and bulk household aisles.',                                     worldX:120,  worldY:920,  width:260, height:120, accentColor:0x2563eb, roofColor:0x1e3a8a, signBgColor:0x1d4ed8 },
+  { id:'b_electronics',  name:'Electronics Store',      type:'Consumer Tech',     category:'Technology & Gadgets',       price:180000, incomePerMinute:14400, operatingCostPerMinute:6400,  description:'Tech showroom displaying 4K smart screens, solar inverter batteries, laptops, and audio rigs.',                                          worldX:520,  worldY:920,  width:260, height:120, accentColor:0x6366f1, roofColor:0x0f172a, signBgColor:0x4338ca },
+  { id:'b_delivery',     name:'Delivery Company',       type:'Logistics',         category:'Automotive & Logistics',     price:220000, incomePerMinute:16000, operatingCostPerMinute:8000,  description:'High-speed dispatch depot coordinating motorbikes and courier vans delivering goods citywide.',                                          worldX:920,  worldY:920,  width:260, height:120, accentColor:0xe11d48, roofColor:0x334155, signBgColor:0xbe123c },
+  { id:'b_fuel',         name:'Fuel Station',           type:'Energy & Fuel',     category:'Infrastructure & Energy',    price:250000, incomePerMinute:20000, operatingCostPerMinute:12000, description:'High-volume petroleum filling station with twin canopy islands, diesel pumps, and mart.',                                                worldX:1320, worldY:920,  width:260, height:120, accentColor:0xd97706, roofColor:0x292524, signBgColor:0xb45309 },
+  { id:'b_realestate',   name:'Real Estate Agency',     type:'Property Brokerage',category:'Corporate & Finance',        price:300000, incomePerMinute:24000, operatingCostPerMinute:10000, description:'Elite property brokerage managing luxury duplex developments, commercial leases, and land deals.',                                       worldX:1720, worldY:920,  width:260, height:120, accentColor:0xb58a45, roofColor:0x1f2937, signBgColor:0x854d0e },
+  { id:'b_construction', name:'Construction Company',   type:'Civil Works',       category:'Infrastructure & Energy',    price:350000, incomePerMinute:28000, operatingCostPerMinute:16000, description:'Heavy engineering contractor running tower cranes, cement mixing trucks, and roadwork crews.',                                            worldX:120,  worldY:1320, width:260, height:120, accentColor:0xf59e0b, roofColor:0x1c1917, signBgColor:0xd97706 },
+  { id:'b_hotel',        name:'Hotel',                  type:'Hospitality',       category:'Food & Hospitality',         price:400000, incomePerMinute:32000, operatingCostPerMinute:20000, description:'Prestige multi-level hotel palace with luxury suites, banquet halls, and panoramic rooftop dining.',                                     worldX:520,  worldY:1320, width:260, height:130, accentColor:0x315b43, roofColor:0x1e1b4b, signBgColor:0x1e3a8a },
+];
+
+// ─── UPGRADE SYSTEM ──────────────────────────────────────────────────────────
+
+export const UPGRADE_TIER_DEFS: UpgradeTierDef[] = [
+  { level: 1, name: 'Basic Operation',    grossMult: 1.00, costMult: 1.00 },
+  { level: 2, name: 'Improved Equipment', grossMult: 1.25, costMult: 0.95 },
+  { level: 3, name: 'Better Facilities',  grossMult: 1.60, costMult: 0.88 },
+  { level: 4, name: 'Expanded Capacity',  grossMult: 2.00, costMult: 0.80 },
+  { level: 5, name: 'Premium Operation',  grossMult: 2.80, costMult: 0.70 },
+];
+
+// Upgrade cost = businessPrice * this multiplier (indexed by toLevel)
+const UPGRADE_COST_MULT = [0, 0, 0.50, 1.25, 2.75, 5.00];
+
+export function getUpgradeCost(businessId: string, toLevel: number): number {
+  const def = BUSINESS_DEFINITIONS.find(b => b.id === businessId);
+  if (!def || toLevel < 2 || toLevel > 5) return 0;
+  return Math.floor(def.price * UPGRADE_COST_MULT[toLevel]);
+}
+
+export function getEffectiveRates(businessId: string, level: number): { gross: number; cost: number; net: number } {
+  const def = BUSINESS_DEFINITIONS.find(b => b.id === businessId);
+  if (!def) return { gross: 0, cost: 0, net: 0 };
+  const tier = UPGRADE_TIER_DEFS[Math.min(Math.max(level, 1), 5) - 1];
+  const gross = Math.floor(def.incomePerMinute * tier.grossMult);
+  const cost  = Math.floor(def.operatingCostPerMinute * tier.costMult);
+  return { gross, cost, net: gross - cost };
+}
+
+// ─── SKIN DEFINITIONS ────────────────────────────────────────────────────────
+
+export const SKIN_DEFINITIONS: SkinDef[] = [
+  { id:'skin_street', name:'Street Hustle',  category:'Outfit', price:0,     description:'Start from the streets. Amber and blue.',            headColor:0xffaa00, bodyTopColor:0x1565c0, bodyBottomColor:0x1a1a2e, shoesColor:0x37474f, accentColor:0xff6600, hatType:'none'        },
+  { id:'skin_campus', name:'Campus Fresh',   category:'Outfit', price:0,     description:'Fresh off campus in green and khaki.',               headColor:0xd4956a, bodyTopColor:0x388e3c, bodyBottomColor:0x795548, shoesColor:0x5d4037, accentColor:0x81c784, hatType:'cap', hatColor:0x212121 },
+  { id:'skin_agbada', name:'Agbada King',    category:'Outfit', price:2000,  description:'Traditional royalty in flowing gold and ivory.',     headColor:0xffb74d, bodyTopColor:0xffd700, bodyBottomColor:0xfffde7, shoesColor:0x795548, accentColor:0xff8f00, hatType:'traditional', hatColor:0xffd700 },
+  { id:'skin_suit',   name:'Corporate Suit', category:'Outfit', price:5000,  description:'Dressed for the boardroom in navy and white.',       headColor:0xd4956a, bodyTopColor:0x1a237e, bodyBottomColor:0x283593, shoesColor:0x0d0d0d, accentColor:0xffffff, hatType:'none'        },
+  { id:'skin_sports', name:'Sports Boss',    category:'Outfit', price:3000,  description:'Athletic and ambitious in red and black.',          headColor:0xffaa00, bodyTopColor:0xd32f2f, bodyBottomColor:0x212121, shoesColor:0xf44336, accentColor:0xffd740, hatType:'cap', hatColor:0xd32f2f },
+  { id:'skin_night',  name:'Night Rider',    category:'Outfit', price:8000,  description:'The city is yours after dark. Jet black, violet.',  headColor:0x5d4037, bodyTopColor:0x212121, bodyBottomColor:0x0d0d0d, shoesColor:0x37474f, accentColor:0x7c4dff, hatType:'none'        },
+  { id:'skin_beach',  name:'Beach Oga',      category:'Outfit', price:4000,  description:'Relaxed and in control — yellow shirt, sky-blue.', headColor:0xffaa00, bodyTopColor:0xfff176, bodyBottomColor:0x29b6f6, shoesColor:0xffd54f, accentColor:0x0288d1, hatType:'cap', hatColor:0x0288d1 },
+  { id:'skin_ceo',    name:'CEO Mode',       category:'Outfit', price:15000, description:'The pinnacle of executive fashion.',                headColor:0xd4956a, bodyTopColor:0x263238, bodyBottomColor:0x37474f, shoesColor:0x0d0d0d, accentColor:0xb58a45, hatType:'none'        },
+];
+
+// ─── MILESTONE / PROGRESSION ─────────────────────────────────────────────────
+
+export const MILESTONES: MilestoneDef[] = [
+  { id:'ms_first_biz',     name:'First Steps',        xpReward:50,   description:'Purchase your first business.',                condition:(s)=>s.ownedBusinesses.length>=1                                                         },
+  { id:'ms_three_biz',     name:'Growing Empire',     xpReward:100,  description:'Own 3 businesses.',                           condition:(s)=>s.ownedBusinesses.length>=3                                                         },
+  { id:'ms_five_biz',      name:'Business Mogul',     xpReward:200,  description:'Own 5 businesses.',                           condition:(s)=>s.ownedBusinesses.length>=5                                                         },
+  { id:'ms_ten_biz',       name:'Tycoon',             xpReward:500,  description:'Own 10 businesses.',                         condition:(s)=>s.ownedBusinesses.length>=10                                                        },
+  { id:'ms_all_biz',       name:'Empire Complete',    xpReward:2000, description:'Own all 17 businesses.',                     condition:(s)=>s.ownedBusinesses.length>=17                                                        },
+  { id:'ms_first_upgrade', name:'Improvement Drive',  xpReward:75,   description:'Upgrade any business to Level 2.',            condition:(s)=>Object.values(s.businessUpgrades||{}).some(l=>l>=2)                                },
+  { id:'ms_level3_upgrade',name:'Facility Manager',   xpReward:150,  description:'Upgrade any business to Level 3.',            condition:(s)=>Object.values(s.businessUpgrades||{}).some(l=>l>=3)                                },
+  { id:'ms_max_upgrade',   name:'Premium Standard',   xpReward:500,  description:'Upgrade any business to Level 5 (Premium).',  condition:(s)=>Object.values(s.businessUpgrades||{}).some(l=>l>=5)                                },
+  { id:'ms_cash_100k',     name:'Six Figures',        xpReward:100,  description:'Accumulate ₦100,000 cash.',                  condition:(s)=>s.cash>=100000                                                                      },
+  { id:'ms_cash_500k',     name:'Half a Million',     xpReward:250,  description:'Accumulate ₦500,000 cash.',                  condition:(s)=>s.cash>=500000                                                                      },
+  { id:'ms_cash_1m',       name:'Millionaire',        xpReward:500,  description:'Hold ₦1,000,000 cash.',                      condition:(s)=>s.cash>=1000000                                                                     },
+  { id:'ms_earnings_1m',   name:'Million Earned',     xpReward:300,  description:'Earn ₦1,000,000 total gross revenue.',        condition:(s)=>s.totalEarnings>=1000000                                                            },
+  { id:'ms_first_skin',    name:'Style Upgrade',      xpReward:50,   description:'Purchase a character skin.',                  condition:(s)=>(s.unlockedSkins||[]).some(id=>{const sk=SKIN_DEFINITIONS.find(d=>d.id===id);return sk!=null&&sk.price>0;}) },
+  { id:'ms_all_skins',     name:'Wardrobe Complete',  xpReward:1000, description:'Own all 8 character outfits.',                condition:(s)=>(s.unlockedSkins||[]).length>=8                                                     },
+];
+
+export function xpForLevel(n: number): number {
+  if (n <= 1) return 0;
+  return 100 * (n - 1) * (n - 1);
+}
+
+export function computePlayerLevel(xp: number): number {
+  return Math.min(10, Math.max(1, Math.floor(1 + Math.sqrt(xp / 100))));
+}
+
+export function getPlayerNetWorth(st: GameState): number {
+  const bizValue = st.ownedBusinesses.reduce((sum, id) => {
+    const def = BUSINESS_DEFINITIONS.find(b => b.id === id);
+    if (!def) return sum;
+    const level       = st.businessUpgrades?.[id] ?? 1;
+    const upgradeSpend = st.businessUpgradeSpend?.[id] ?? 0;
+    const netCumul    = (st.businessRevenue?.[id] ?? 0) - (st.businessExpenses?.[id] ?? 0);
+    const levelFactor = 1 + (level - 1) * 0.5;
+    return sum + Math.floor(def.price * levelFactor) + upgradeSpend + Math.floor(netCumul * 0.1);
+  }, 0);
+  return st.cash + bizValue;
+}
+
+// ─── GAME STATE ──────────────────────────────────────────────────────────────
 
 const DEFAULT_STATE: GameState = {
   cash: 50000,
@@ -349,31 +202,55 @@ const DEFAULT_STATE: GameState = {
   totalEarnings: 0,
   totalExpenses: 0,
   suspendedBusinesses: [],
-  targetWaypoint: null
+  businessUpgrades: {},
+  businessUpgradeSpend: {},
+  businessRevenue: {},
+  businessExpenses: {},
+  unlockedSkins: ['skin_street', 'skin_campus'],
+  equippedOutfit: 'skin_street',
+  playerXP: 0,
+  playerLevel: 1,
+  completedMilestones: [],
+  pendingMilestoneNotifications: [],
+  targetWaypoint: null,
 };
 
 let state: GameState = { ...DEFAULT_STATE };
 
-// Save/Load functionality
+// ─── SAVE / LOAD ─────────────────────────────────────────────────────────────
+
 const SAVE_KEY = 'street_to_ceo_save_v2';
 
 export const loadGame = () => {
   try {
     const saved = localStorage.getItem(SAVE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      // Ensure existing saves migrate safely without data loss
-      state = {
-        ...DEFAULT_STATE,
-        ...parsed,
-        totalEarnings: typeof parsed.totalEarnings === 'number' ? parsed.totalEarnings : 0,
-        totalExpenses: typeof parsed.totalExpenses === 'number' ? parsed.totalExpenses : 0,
-        suspendedBusinesses: Array.isArray(parsed.suspendedBusinesses) ? parsed.suspendedBusinesses : [],
-        activeInteraction: null,
-        panelOpen: false,
-        targetWaypoint: null
-      };
-    }
+    if (!saved) return;
+    const p = JSON.parse(saved) as Partial<GameState & Record<string, unknown>>;
+    state = {
+      ...DEFAULT_STATE,
+      ...p,
+      totalExpenses:                 typeof p.totalExpenses==='number'           ? p.totalExpenses             : 0,
+      suspendedBusinesses:           Array.isArray(p.suspendedBusinesses)        ? p.suspendedBusinesses       : [],
+      businessUpgrades:              (p.businessUpgrades && typeof p.businessUpgrades==='object') ? (p.businessUpgrades as Record<string,number>) : {},
+      businessUpgradeSpend:          (p.businessUpgradeSpend && typeof p.businessUpgradeSpend==='object') ? (p.businessUpgradeSpend as Record<string,number>) : {},
+      businessRevenue:               (p.businessRevenue && typeof p.businessRevenue==='object') ? (p.businessRevenue as Record<string,number>) : {},
+      businessExpenses:              (p.businessExpenses && typeof p.businessExpenses==='object') ? (p.businessExpenses as Record<string,number>) : {},
+      unlockedSkins:                 Array.isArray(p.unlockedSkins)              ? p.unlockedSkins             : ['skin_street','skin_campus'],
+      equippedOutfit:                typeof p.equippedOutfit==='string'          ? p.equippedOutfit            : 'skin_street',
+      playerXP:                      typeof p.playerXP==='number'               ? p.playerXP                  : 0,
+      playerLevel:                   typeof p.playerLevel==='number'            ? p.playerLevel               : 1,
+      completedMilestones:           Array.isArray(p.completedMilestones)       ? p.completedMilestones       : [],
+      pendingMilestoneNotifications: Array.isArray(p.pendingMilestoneNotifications) ? p.pendingMilestoneNotifications : [],
+      // Always reset transient UI state
+      activeInteraction: null,
+      panelOpen: false,
+      targetWaypoint: null,
+    };
+    // Guarantee free starters
+    if (!state.unlockedSkins.includes('skin_street')) state.unlockedSkins.push('skin_street');
+    if (!state.unlockedSkins.includes('skin_campus')) state.unlockedSkins.push('skin_campus');
+    // Validate equipped skin
+    if (!state.unlockedSkins.includes(state.equippedOutfit)) state.equippedOutfit = 'skin_street';
   } catch (e) {
     console.error('Failed to load save', e);
   }
@@ -381,212 +258,243 @@ export const loadGame = () => {
 
 export const saveGame = () => {
   try {
-    const toSave = {
-      cash: state.cash,
-      location: state.location,
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      cash: state.cash, location: state.location,
       ownedBusinesses: state.ownedBusinesses,
-      ledger: state.ledger.slice(0, 150), // Keep recent transactions
-      totalEarnings: state.totalEarnings,
-      totalExpenses: state.totalExpenses,
-      suspendedBusinesses: state.suspendedBusinesses
-    };
-    localStorage.setItem(SAVE_KEY, JSON.stringify(toSave));
+      ledger: state.ledger.slice(0, 150),
+      totalEarnings: state.totalEarnings, totalExpenses: state.totalExpenses,
+      suspendedBusinesses: state.suspendedBusinesses,
+      businessUpgrades: state.businessUpgrades,
+      businessUpgradeSpend: state.businessUpgradeSpend,
+      businessRevenue: state.businessRevenue,
+      businessExpenses: state.businessExpenses,
+      unlockedSkins: state.unlockedSkins, equippedOutfit: state.equippedOutfit,
+      playerXP: state.playerXP, playerLevel: state.playerLevel,
+      completedMilestones: state.completedMilestones,
+      pendingMilestoneNotifications: state.pendingMilestoneNotifications,
+    }));
   } catch (e) {
     console.error('Failed to save game', e);
   }
 };
 
-// Initial load
 loadGame();
+
+// ─── REACTIVE STATE ──────────────────────────────────────────────────────────
 
 type Listener = (state: GameState) => void;
 const listeners = new Set<Listener>();
 
-export const getGameState = () => state;
-
-export const updateGameState = (newState: Partial<GameState>) => {
-  state = { ...state, ...newState };
-  listeners.forEach((listener) => listener(state));
+export const getGameState  = () => state;
+export const updateGameState = (patch: Partial<GameState>) => {
+  state = { ...state, ...patch };
+  listeners.forEach(fn => fn(state));
 };
-
 export const subscribeToGameState = (listener: Listener) => {
   listeners.add(listener);
-  return () => {
-    listeners.delete(listener);
-  };
+  return () => { listeners.delete(listener); };
 };
 
-// Waypoint Navigation helpers
+// ─── MILESTONE CHECKING ──────────────────────────────────────────────────────
+
+function applyMilestoneCheck(): void {
+  const cur = getGameState();
+  const newlyCompleted: string[] = [];
+  let xpGained = 0;
+  for (const m of MILESTONES) {
+    if (!cur.completedMilestones.includes(m.id) && m.condition(cur)) {
+      newlyCompleted.push(m.id);
+      xpGained += m.xpReward;
+    }
+  }
+  if (newlyCompleted.length > 0) {
+    const newXP = cur.playerXP + xpGained;
+    updateGameState({
+      completedMilestones:           [...cur.completedMilestones, ...newlyCompleted],
+      pendingMilestoneNotifications: [...cur.pendingMilestoneNotifications, ...newlyCompleted],
+      playerXP: newXP,
+      playerLevel: computePlayerLevel(newXP),
+    });
+  }
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+
 export const setTargetWaypoint = (businessId: string) => {
-  const def = BUSINESS_DEFINITIONS.find((b) => b.id === businessId);
+  const def = BUSINESS_DEFINITIONS.find(b => b.id === businessId);
   if (!def) return;
-  const waypoint: Waypoint = {
-    x: def.worldX + def.width / 2,
-    y: def.worldY + def.height + 25,
-    name: def.name,
-    businessId: def.id
-  };
-  updateGameState({ targetWaypoint: waypoint });
+  updateGameState({ targetWaypoint: { x: def.worldX + def.width/2, y: def.worldY + def.height + 25, name: def.name, businessId: def.id } });
+};
+export const clearTargetWaypoint = () => updateGameState({ targetWaypoint: null });
+
+export const dismissMilestoneNotification = (id: string) => {
+  const cur = getGameState();
+  updateGameState({ pendingMilestoneNotifications: cur.pendingMilestoneNotifications.filter(m => m !== id) });
+  saveGame();
 };
 
-export const clearTargetWaypoint = () => {
-  updateGameState({ targetWaypoint: null });
-};
+// ─── BUY BUSINESS ────────────────────────────────────────────────────────────
 
-// Central transaction function
 export const buyBusiness = (businessId: string): { success: boolean; message: string } => {
-  const def = BUSINESS_DEFINITIONS.find((b) => b.id === businessId);
-  if (!def) return { success: false, message: 'Business not found.' };
+  const def = BUSINESS_DEFINITIONS.find(b => b.id === businessId);
+  if (!def)                                  return { success:false, message:'Business not found.' };
+  if (state.ownedBusinesses.includes(businessId)) return { success:false, message:'You already own this business.' };
+  if (state.cash < def.price)                return { success:false, message:`Need ₦${(def.price-state.cash).toLocaleString()} more.` };
 
-  if (state.ownedBusinesses.includes(businessId)) {
-    return { success: false, message: 'You already own this business.' };
-  }
+  const newXP = state.playerXP + 10;
+  updateGameState({
+    cash:            state.cash - def.price,
+    ownedBusinesses: [...state.ownedBusinesses, businessId],
+    ledger:          [{ date:new Date().toISOString(), amount:-def.price, description:`Purchased ${def.name}`, type:'purchase', businessId }, ...state.ledger].slice(0,150),
+    playerXP:        newXP,
+    playerLevel:     computePlayerLevel(newXP),
+  });
+  applyMilestoneCheck();
+  saveGame();
+  return { success:true, message:`Purchased ${def.name} for ₦${def.price.toLocaleString()}!` };
+};
 
-  if (state.cash < def.price) {
-    const shortfall = def.price - state.cash;
-    return { success: false, message: `Insufficient funds. You need ₦${shortfall.toLocaleString()} more.` };
-  }
+// ─── UPGRADE BUSINESS ────────────────────────────────────────────────────────
 
-  const transaction: Transaction = {
-    date: new Date().toISOString(),
-    amount: -def.price,
-    description: `Purchased ${def.name}`,
-    type: 'purchase',
-    businessId
-  };
+export const upgradeBusinessLevel = (businessId: string): { success: boolean; message: string } => {
+  const def = BUSINESS_DEFINITIONS.find(b => b.id === businessId);
+  if (!def)                                       return { success:false, message:'Business not found.' };
+  if (!state.ownedBusinesses.includes(businessId)) return { success:false, message:'You do not own this business.' };
+
+  const currentLevel = state.businessUpgrades?.[businessId] ?? 1;
+  if (currentLevel >= 5) return { success:false, message:'Already at maximum level (Premium Operation).' };
+
+  const toLevel = currentLevel + 1;
+  const cost    = getUpgradeCost(businessId, toLevel);
+  if (state.cash < cost) return { success:false, message:`Need ₦${cost.toLocaleString()} (have ₦${state.cash.toLocaleString()}).` };
+
+  const tierDef   = UPGRADE_TIER_DEFS[toLevel - 1];
+  const xpRewards = [0, 0, 15, 25, 40, 75];
+  const xpGain    = xpRewards[toLevel] ?? 15;
+  const newXP     = state.playerXP + xpGain;
+
+  const newUpgrades     = { ...(state.businessUpgrades     || {}), [businessId]: toLevel };
+  const newUpgradeSpend = { ...(state.businessUpgradeSpend || {}) };
+  newUpgradeSpend[businessId] = (newUpgradeSpend[businessId] || 0) + cost;
 
   updateGameState({
-    cash: state.cash - def.price,
-    ownedBusinesses: [...state.ownedBusinesses, businessId],
-    ledger: [transaction, ...state.ledger].slice(0, 150)
+    cash:                 state.cash - cost,
+    businessUpgrades:     newUpgrades,
+    businessUpgradeSpend: newUpgradeSpend,
+    ledger:               [{ date:new Date().toISOString(), amount:-cost, description:`Upgraded ${def.name} to Level ${toLevel} (${tierDef.name})`, type:'upgrade', businessId }, ...state.ledger].slice(0,150),
+    playerXP:             newXP,
+    playerLevel:          computePlayerLevel(newXP),
+    // Resume if suspended — give it a fresh chance
+    suspendedBusinesses: state.suspendedBusinesses.filter(id => id !== businessId),
   });
-
+  applyMilestoneCheck();
   saveGame();
-
-  return { success: true, message: `Successfully purchased ${def.name} for ₦${def.price.toLocaleString()}!` };
+  return { success:true, message:`${def.name} upgraded to Level ${toLevel}: ${tierDef.name}!` };
 };
 
-// Passive Income & Economy Loop
-let incomeInterval: number | null = null;
+// ─── SKIN SYSTEM ─────────────────────────────────────────────────────────────
+
+export const buySkin = (skinId: string): { success: boolean; message: string } => {
+  const skin = SKIN_DEFINITIONS.find(s => s.id === skinId);
+  if (!skin)                                  return { success:false, message:'Skin not found.' };
+  if (state.unlockedSkins.includes(skinId))   return { success:false, message:'You already own this outfit.' };
+  if (skin.price > 0 && state.cash < skin.price) return { success:false, message:`Need ₦${skin.price.toLocaleString()} (have ₦${state.cash.toLocaleString()}).` };
+
+  const newXP = state.playerXP + 10;
+  const newCash = skin.price > 0 ? state.cash - skin.price : state.cash;
+  const newLedger: Transaction[] = skin.price > 0
+    ? [{ date:new Date().toISOString(), amount:-skin.price, description:`Purchased outfit: ${skin.name}`, type:'skin' }, ...state.ledger]
+    : state.ledger;
+
+  updateGameState({
+    cash:          newCash,
+    unlockedSkins: [...state.unlockedSkins, skinId],
+    ledger:        newLedger.slice(0, 150),
+    playerXP:      newXP,
+    playerLevel:   computePlayerLevel(newXP),
+  });
+  applyMilestoneCheck();
+  saveGame();
+  return { success:true, message:`Outfit "${skin.name}" unlocked!` };
+};
+
+export const equipSkin = (skinId: string): { success: boolean; message: string } => {
+  if (!state.unlockedSkins.includes(skinId)) return { success:false, message:'You do not own this outfit.' };
+  updateGameState({ equippedOutfit: skinId });
+  saveGame();
+  return { success:true, message:'Outfit equipped!' };
+};
+
+// ─── PASSIVE INCOME LOOP ─────────────────────────────────────────────────────
+
+let incomeInterval: ReturnType<typeof setInterval> | null = null;
 
 export const startIncomeLoop = () => {
-  if (incomeInterval !== null) {
-    clearInterval(incomeInterval);
-    incomeInterval = null;
-  }
+  if (incomeInterval !== null) { clearInterval(incomeInterval); incomeInterval = null; }
 
-  // Payment interval: exactly 15 seconds (15,000ms)
-  // Each 15-second payment calculates:
-  // 1. tickGross = incomePerMinute / 4
-  // 2. tickExpense = operatingCostPerMinute / 4
-  // 3. tickNet = tickGross - tickExpense
-  incomeInterval = window.setInterval(() => {
-    const currentState = getGameState();
-    if (!currentState.ownedBusinesses || currentState.ownedBusinesses.length === 0) {
-      return;
-    }
+  incomeInterval = setInterval(() => {
+    const cur = getGameState();
+    if (!cur.ownedBusinesses || cur.ownedBusinesses.length === 0) return;
 
-    let deltaCash = 0;
-    let deltaGross = 0;
-    let deltaExpenses = 0;
-    const newTransactions: Transaction[] = [];
-    let currentCash = currentState.cash;
-    let currentSuspended = [...(currentState.suspendedBusinesses || [])];
+    let deltaCash = 0, deltaGross = 0, deltaExpenses = 0;
+    const newTx: Transaction[] = [];
+    let curCash      = cur.cash;
+    let curSuspended = [...(cur.suspendedBusinesses || [])];
+    const perBizRev: Record<string,number> = {};
+    const perBizExp: Record<string,number> = {};
 
-    currentState.ownedBusinesses.forEach((id) => {
-      const def = BUSINESS_DEFINITIONS.find((b) => b.id === id);
+    cur.ownedBusinesses.forEach(id => {
+      const def = BUSINESS_DEFINITIONS.find(b => b.id === id);
       if (!def) return;
 
-      const tickGross = Math.floor(def.incomePerMinute / 4);
-      const tickExpense = Math.floor(def.operatingCostPerMinute / 4);
-      const tickNet = tickGross - tickExpense;
-      const isSuspended = currentSuspended.includes(id);
+      const level     = cur.businessUpgrades?.[id] ?? 1;
+      const eff       = getEffectiveRates(id, level);
+      const tGross    = Math.floor(eff.gross / 4);
+      const tExpense  = Math.floor(eff.cost  / 4);
+      const tNet      = tGross - tExpense;
+      const suspended = curSuspended.includes(id);
 
-      if (isSuspended) {
-        // Business was suspended due to lack of funds.
-        // Check if player now has sufficient cash to cover the operating costs.
-        if (currentCash >= tickExpense) {
-          // Player can now afford operating expenses: resume business!
-          currentSuspended = currentSuspended.filter((sId) => sId !== id);
-          currentCash += tickNet;
-          deltaCash += tickNet;
-          deltaGross += tickGross;
-          deltaExpenses += tickExpense;
-
-          newTransactions.push({
-            date: new Date().toISOString(),
-            amount: 0,
-            description: `${def.name} Resumed Operations`,
-            type: 'system',
-            businessId: id
-          });
-          newTransactions.push({
-            date: new Date().toISOString(),
-            amount: tickGross,
-            description: `${def.name} Revenue`,
-            type: 'revenue',
-            businessId: id
-          });
-          newTransactions.push({
-            date: new Date().toISOString(),
-            amount: -tickExpense,
-            description: `${def.name} Operating Cost`,
-            type: 'expense',
-            businessId: id
-          });
+      if (suspended) {
+        if (curCash >= tExpense) {
+          curSuspended = curSuspended.filter(s => s !== id);
+          curCash += tNet; deltaCash += tNet; deltaGross += tGross; deltaExpenses += tExpense;
+          perBizRev[id] = tGross; perBizExp[id] = tExpense;
+          newTx.push({ date:new Date().toISOString(), amount:0,        description:`${def.name} Resumed Operations`,                    type:'system',  businessId:id });
+          newTx.push({ date:new Date().toISOString(), amount:tGross,   description:`${def.name} Revenue`,                               type:'revenue', businessId:id });
+          newTx.push({ date:new Date().toISOString(), amount:-tExpense, description:`${def.name} Operating Cost`,                       type:'expense', businessId:id });
         }
-        // If still cannot afford, do not generate income or expense.
       } else {
-        // Active business:
-        // Policy: Protect against negative cash.
-        // If the transaction would cause cash to drop below zero:
-        if (currentCash + tickNet < 0) {
-          // Suspend operations with visible notice and explanation
-          currentSuspended.push(id);
-          newTransactions.push({
-            date: new Date().toISOString(),
-            amount: 0,
-            description: `${def.name} Suspended: Insufficient funds for ₦${tickExpense.toLocaleString()} operating costs`,
-            type: 'system',
-            businessId: id
-          });
+        if (curCash + tNet < 0) {
+          curSuspended.push(id);
+          newTx.push({ date:new Date().toISOString(), amount:0, description:`${def.name} Suspended — need ₦${tExpense.toLocaleString()} for ops`, type:'system', businessId:id });
         } else {
-          // Normal profitable operation
-          currentCash += tickNet;
-          deltaCash += tickNet;
-          deltaGross += tickGross;
-          deltaExpenses += tickExpense;
-
-          newTransactions.push({
-            date: new Date().toISOString(),
-            amount: tickGross,
-            description: `${def.name} Revenue`,
-            type: 'revenue',
-            businessId: id
-          });
-          newTransactions.push({
-            date: new Date().toISOString(),
-            amount: -tickExpense,
-            description: `${def.name} Operating Cost`,
-            type: 'expense',
-            businessId: id
-          });
+          curCash += tNet; deltaCash += tNet; deltaGross += tGross; deltaExpenses += tExpense;
+          perBizRev[id] = tGross; perBizExp[id] = tExpense;
+          newTx.push({ date:new Date().toISOString(), amount:tGross,    description:`${def.name} Revenue`,       type:'revenue', businessId:id });
+          newTx.push({ date:new Date().toISOString(), amount:-tExpense, description:`${def.name} Operating Cost`, type:'expense', businessId:id });
         }
       }
     });
 
-    if (newTransactions.length > 0 || currentSuspended.length !== (currentState.suspendedBusinesses || []).length) {
+    if (newTx.length > 0 || curSuspended.length !== (cur.suspendedBusinesses||[]).length) {
+      const newBizRev = { ...(cur.businessRevenue  || {}) };
+      const newBizExp = { ...(cur.businessExpenses || {}) };
+      Object.entries(perBizRev).forEach(([id,v]) => { newBizRev[id] = (newBizRev[id]||0) + v; });
+      Object.entries(perBizExp).forEach(([id,v]) => { newBizExp[id] = (newBizExp[id]||0) + v; });
+
       updateGameState({
-        cash: currentState.cash + deltaCash,
-        totalEarnings: (currentState.totalEarnings || 0) + deltaGross,
-        totalExpenses: (currentState.totalExpenses || 0) + deltaExpenses,
-        suspendedBusinesses: currentSuspended,
-        ledger: [...newTransactions, ...currentState.ledger].slice(0, 150)
+        cash:               cur.cash + deltaCash,
+        totalEarnings:      (cur.totalEarnings||0) + deltaGross,
+        totalExpenses:      (cur.totalExpenses ||0) + deltaExpenses,
+        businessRevenue:    newBizRev,
+        businessExpenses:   newBizExp,
+        suspendedBusinesses: curSuspended,
+        ledger:             [...newTx, ...cur.ledger].slice(0, 150),
       });
+      applyMilestoneCheck();
       saveGame();
     }
   }, 15000);
 };
 
-// Start the loop initially
 startIncomeLoop();
