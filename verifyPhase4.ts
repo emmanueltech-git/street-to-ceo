@@ -25,7 +25,7 @@ const {
   getGameState,
   updateGameState,
   loadGame,
-} = await import('../src/store/gameState.ts');
+} = await import('./src/store/gameState.ts');
 
 // ─── Tiny test harness ────────────────────────────────────────────────────────
 let passed = 0;

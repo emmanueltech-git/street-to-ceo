@@ -1,4 +1,4 @@
-﻿import Phaser from 'phaser';
+import Phaser from 'phaser';
 import { SKIN_DEFINITIONS } from '../../store/gameState';
 import type { SkinDef } from '../../store/gameState';
 
@@ -101,13 +101,21 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.setTexture('player_' + skinId);
   }
 
+  private walkTimer = 0;
+
   update() {
     const body = this.body as Phaser.Physics.Arcade.Body;
     body.setVelocity(0);
 
     let vx = 0, vy = 0;
-    if (this.cursors?.left.isDown  || this.wasd?.left.isDown)  vx = -this.speed;
-    else if (this.cursors?.right.isDown || this.wasd?.right.isDown) vx = this.speed;
+    if (this.cursors?.left.isDown  || this.wasd?.left.isDown)  {
+      vx = -this.speed;
+      this.setFlipX(true);
+    } else if (this.cursors?.right.isDown || this.wasd?.right.isDown) {
+      vx = this.speed;
+      this.setFlipX(false);
+    }
+
     if (this.cursors?.up.isDown    || this.wasd?.up.isDown)    vy = -this.speed;
     else if (this.cursors?.down.isDown  || this.wasd?.down.isDown)  vy = this.speed;
 
@@ -115,6 +123,15 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       body.velocity.normalize().scale(this.speed);
     } else {
       body.setVelocity(vx, vy);
+    }
+
+    // Walking animation bob / tilt
+    if (vx !== 0 || vy !== 0) {
+      this.walkTimer += 0.25;
+      this.setAngle(Math.sin(this.walkTimer) * 4);
+    } else {
+      this.walkTimer = 0;
+      this.setAngle(0);
     }
   }
 }

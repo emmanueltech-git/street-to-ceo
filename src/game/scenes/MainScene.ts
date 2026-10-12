@@ -1,4 +1,4 @@
-﻿import Phaser from 'phaser';
+import Phaser from 'phaser';
 import { Player } from '../objects/Player';
 import { CityEnvironment } from '../world/CityEnvironment';
 import { updateGameState, getGameState, clearTargetWaypoint } from '../../store/gameState';
@@ -39,6 +39,7 @@ export class MainScene extends Phaser.Scene {
   update() {
     if (!this.player) return;
     this.player.update();
+    this.city.update(this.game.loop.delta);
 
     // ── Interaction zone detection ────────────────────────────────────────────
     let touchingBusinessId: string | null = null;

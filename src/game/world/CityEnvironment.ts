@@ -2,6 +2,16 @@ import Phaser from 'phaser';
 import { BUSINESS_DEFINITIONS } from '../../store/gameState';
 import type { BusinessDef } from '../../store/gameState';
 
+interface AmbientCitizen {
+  sprite: Phaser.GameObjects.Sprite;
+  minVal: number;
+  maxVal: number;
+  speed: number;
+  direction: 1 | -1;
+  axis: 'x' | 'y';
+  walkTimer: number;
+}
+
 export class CityEnvironment {
   private scene: Phaser.Scene;
   public buildings: Phaser.Physics.Arcade.StaticGroup;
@@ -10,6 +20,7 @@ export class CityEnvironment {
   public worldHeight = 2000;
   private waypointGraphics?: Phaser.GameObjects.Graphics;
   private upgradeBadges: Map<string, Phaser.GameObjects.Text> = new Map();
+  private ambientCitizens: AmbientCitizen[] = [];
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -72,6 +83,12 @@ export class CityEnvironment {
 
     // Build decorative blocks (parks, residential zones, plazas) for blocks not occupied by businesses
     this.buildCivicAndResidentialBlocks(blockSize, roadWidth);
+
+    // Build street lamps and atmospheric lighting
+    this.buildStreetDecorations(blockSize, roadWidth);
+
+    // Initialize ambient pedestrians
+    this.initAmbientCitizens();
 
     // Create waypoint marker graphic
     this.waypointGraphics = scene.add.graphics();
@@ -469,6 +486,121 @@ export class CityEnvironment {
     });
   }
 
+  private buildStreetDecorations(blockSize: number, roadWidth: number) {
+    const { scene, worldWidth, worldHeight } = this;
+    const g = scene.add.graphics();
+    g.setDepth(1);
+
+    // Street lamps at sidewalk corners
+    const step = blockSize + roadWidth;
+    for (let x = roadWidth; x < worldWidth; x += step) {
+      for (let y = roadWidth; y < worldHeight; y += step) {
+        // Lamp post
+        g.fillStyle(0x334155, 1);
+        g.fillRect(x - 14, y - 14, 4, 18);
+        // Lamp head
+        g.fillStyle(0xfef08a, 1);
+        g.fillCircle(x - 12, y - 15, 4);
+        // Warm halo glow
+        g.fillStyle(0xfef08a, 0.12);
+        g.fillCircle(x - 12, y - 15, 20);
+
+        // Additional diagonal corner lamp
+        g.fillStyle(0x334155, 1);
+        g.fillRect(x + 10, y - 14, 4, 18);
+        g.fillStyle(0xfef08a, 1);
+        g.fillCircle(x + 12, y - 15, 4);
+        g.fillStyle(0xfef08a, 0.12);
+        g.fillCircle(x + 12, y - 15, 20);
+      }
+    }
+  }
+
+  private initAmbientCitizens() {
+    const { scene } = this;
+
+    // Helper to generate a mini citizen texture
+    const makeCitizenTexture = (key: string, shirtCol: number, pantsCol: number) => {
+      if (scene.textures.exists(key)) return;
+      const g = scene.add.graphics();
+      // Head
+      g.fillStyle(0xd4956a, 1);
+      g.fillCircle(8, 6, 4);
+      // Torso
+      g.fillStyle(shirtCol, 1);
+      g.fillRect(4, 10, 8, 8);
+      // Legs
+      g.fillStyle(pantsCol, 1);
+      g.fillRect(4, 18, 3, 6);
+      g.fillRect(9, 18, 3, 6);
+      g.generateTexture(key, 16, 26);
+      g.destroy();
+    };
+
+    makeCitizenTexture('cit_1', 0x2563eb, 0x1e293b);
+    makeCitizenTexture('cit_2', 0x16a34a, 0x475569);
+    makeCitizenTexture('cit_3', 0xd97706, 0x27272a);
+    makeCitizenTexture('cit_4', 0x9333ea, 0x334155);
+
+    const patrolRoutes: Array<{
+      key: string;
+      startX: number;
+      startY: number;
+      axis: 'x' | 'y';
+      minVal: number;
+      maxVal: number;
+      speed: number;
+    }> = [
+      { key: 'cit_1', startX: 420, startY: 260, axis: 'x', minVal: 400, maxVal: 760, speed: 38 },
+      { key: 'cit_2', startX: 1040, startY: 260, axis: 'x', minVal: 1000, maxVal: 1400, speed: 42 },
+      { key: 'cit_3', startX: 340, startY: 600, axis: 'y', minVal: 520, maxVal: 820, speed: 35 },
+      { key: 'cit_4', startX: 950, startY: 1240, axis: 'x', minVal: 920, maxVal: 1180, speed: 30 },
+      { key: 'cit_1', startX: 1340, startY: 1040, axis: 'y', minVal: 980, maxVal: 1220, speed: 36 },
+      { key: 'cit_2', startX: 540, startY: 660, axis: 'x', minVal: 480, maxVal: 820, speed: 40 },
+    ];
+
+    patrolRoutes.forEach(r => {
+      const spr = scene.add.sprite(r.startX, r.startY, r.key);
+      spr.setDepth(5);
+      this.ambientCitizens.push({
+        sprite: spr,
+        axis: r.axis,
+        minVal: r.minVal,
+        maxVal: r.maxVal,
+        speed: r.speed,
+        direction: 1,
+        walkTimer: 0,
+      });
+    });
+  }
+
+  public update(delta: number) {
+    const sec = delta / 1000;
+    this.ambientCitizens.forEach(c => {
+      c.walkTimer += delta * 0.008;
+      const wobble = Math.sin(c.walkTimer) * 3;
+      c.sprite.setAngle(wobble);
+
+      if (c.axis === 'x') {
+        c.sprite.x += c.speed * c.direction * sec;
+        if (c.sprite.x > c.maxVal) {
+          c.direction = -1;
+          c.sprite.setFlipX(true);
+        } else if (c.sprite.x < c.minVal) {
+          c.direction = 1;
+          c.sprite.setFlipX(false);
+        }
+      } else {
+        c.sprite.y += c.speed * c.direction * sec;
+        if (c.sprite.y > c.maxVal) {
+          c.direction = -1;
+        } else if (c.sprite.y < c.minVal) {
+          c.direction = 1;
+        }
+      }
+    });
+  }
+
   public updateWaypoint(waypoint: { x: number; y: number; name: string } | null) {
     if (!this.waypointGraphics) return;
     this.waypointGraphics.clear();
@@ -485,30 +617,41 @@ export class CityEnvironment {
 
   /**
    * Update or create the upgrade level badge for a business building.
-   * Badges show gold star symbols above the entrance for levels 2-5.
+   * Badges show gold star symbols and tier name above the entrance for levels 2-5.
    */
   public setUpgradeBadge(businessId: string, level: number): void {
     const def = BUSINESS_DEFINITIONS.find(b => b.id === businessId);
     if (!def) return;
 
-    const stars = level >= 2 ? '★'.repeat(level - 1) : '';
+    const tierLabels = [
+      '',
+      'Basic',
+      '★ LVL 2: EQUIPMENT',
+      '★★ LVL 3: FACILITIES',
+      '★★★ LVL 4: CAPACITY',
+      '★★★★ LVL 5: PREMIUM',
+    ];
+    const stars = level >= 2 ? tierLabels[level] || `★ LVL ${level}` : '';
     const bx = def.worldX + def.width / 2;
     const by = def.worldY - 14;
 
     const existing = this.upgradeBadges.get(businessId);
     if (existing) {
       existing.setText(stars);
+      existing.setVisible(level >= 2);
       return;
     }
 
     if (level >= 2) {
       const badge = this.scene.add.text(bx, by, stars, {
-        fontSize: '14px',
-        color: '#B58A45',
-        stroke: '#252923',
-        strokeThickness: 3,
+        fontSize: '11px',
+        color: '#F4F1E8',
+        backgroundColor: '#1E293B',
+        padding: { left: 6, right: 6, top: 3, bottom: 3 },
+        stroke: '#B58A45',
+        strokeThickness: 2,
         fontStyle: 'bold',
-      }).setOrigin(0.5, 1).setDepth(10);
+      }).setOrigin(0.5, 1).setDepth(12);
       this.upgradeBadges.set(businessId, badge);
     }
   }

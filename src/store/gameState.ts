@@ -1,4 +1,4 @@
-﻿// ─── INTERFACES ──────────────────────────────────────────────────────────────
+// ─── INTERFACES ──────────────────────────────────────────────────────────────
 
 export interface BusinessDef {
   id: string;
@@ -127,46 +127,79 @@ export function getUpgradeCost(businessId: string, toLevel: number): number {
   return Math.floor(def.price * UPGRADE_COST_MULT[toLevel]);
 }
 
-export function getEffectiveRates(businessId: string, level: number): { gross: number; cost: number; net: number } {
+export function getEffectiveRates(businessId: string, level: number): {
+  gross: number;
+  cost: number;
+  net: number;
+  capacity: number;
+  tierName: string;
+} {
   const def = BUSINESS_DEFINITIONS.find(b => b.id === businessId);
-  if (!def) return { gross: 0, cost: 0, net: 0 };
-  const tier = UPGRADE_TIER_DEFS[Math.min(Math.max(level, 1), 5) - 1];
+  if (!def) return { gross: 0, cost: 0, net: 0, capacity: 0, tierName: 'Basic Operation' };
+  const tierIndex = Math.min(Math.max(level, 1), 5) - 1;
+  const tier = UPGRADE_TIER_DEFS[tierIndex];
   const gross = Math.floor(def.incomePerMinute * tier.grossMult);
   const cost  = Math.floor(def.operatingCostPerMinute * tier.costMult);
-  return { gross, cost, net: gross - cost };
+  const baseCap = Math.max(20, Math.floor(def.price / 1500));
+  const capMults = [1, 1.4, 2.0, 3.0, 4.5];
+  const capacity = Math.floor(baseCap * capMults[tierIndex]);
+  return { gross, cost, net: gross - cost, capacity, tierName: tier.name };
 }
 
 // ─── SKIN DEFINITIONS ────────────────────────────────────────────────────────
 
 export const SKIN_DEFINITIONS: SkinDef[] = [
-  { id:'skin_street', name:'Street Hustle',  category:'Outfit', price:0,     description:'Start from the streets. Amber and blue.',            headColor:0xffaa00, bodyTopColor:0x1565c0, bodyBottomColor:0x1a1a2e, shoesColor:0x37474f, accentColor:0xff6600, hatType:'none'        },
-  { id:'skin_campus', name:'Campus Fresh',   category:'Outfit', price:0,     description:'Fresh off campus in green and khaki.',               headColor:0xd4956a, bodyTopColor:0x388e3c, bodyBottomColor:0x795548, shoesColor:0x5d4037, accentColor:0x81c784, hatType:'cap', hatColor:0x212121 },
-  { id:'skin_agbada', name:'Agbada King',    category:'Outfit', price:2000,  description:'Traditional royalty in flowing gold and ivory.',     headColor:0xffb74d, bodyTopColor:0xffd700, bodyBottomColor:0xfffde7, shoesColor:0x795548, accentColor:0xff8f00, hatType:'traditional', hatColor:0xffd700 },
-  { id:'skin_suit',   name:'Corporate Suit', category:'Outfit', price:5000,  description:'Dressed for the boardroom in navy and white.',       headColor:0xd4956a, bodyTopColor:0x1a237e, bodyBottomColor:0x283593, shoesColor:0x0d0d0d, accentColor:0xffffff, hatType:'none'        },
-  { id:'skin_sports', name:'Sports Boss',    category:'Outfit', price:3000,  description:'Athletic and ambitious in red and black.',          headColor:0xffaa00, bodyTopColor:0xd32f2f, bodyBottomColor:0x212121, shoesColor:0xf44336, accentColor:0xffd740, hatType:'cap', hatColor:0xd32f2f },
-  { id:'skin_night',  name:'Night Rider',    category:'Outfit', price:8000,  description:'The city is yours after dark. Jet black, violet.',  headColor:0x5d4037, bodyTopColor:0x212121, bodyBottomColor:0x0d0d0d, shoesColor:0x37474f, accentColor:0x7c4dff, hatType:'none'        },
-  { id:'skin_beach',  name:'Beach Oga',      category:'Outfit', price:4000,  description:'Relaxed and in control — yellow shirt, sky-blue.', headColor:0xffaa00, bodyTopColor:0xfff176, bodyBottomColor:0x29b6f6, shoesColor:0xffd54f, accentColor:0x0288d1, hatType:'cap', hatColor:0x0288d1 },
-  { id:'skin_ceo',    name:'CEO Mode',       category:'Outfit', price:15000, description:'The pinnacle of executive fashion.',                headColor:0xd4956a, bodyTopColor:0x263238, bodyBottomColor:0x37474f, shoesColor:0x0d0d0d, accentColor:0xb58a45, hatType:'none'        },
+  { id:'skin_street',    name:'Street Hustle',    category:'Outfit', price:0,     description:'Start from the streets. Amber and blue with classic sneakers.',  headColor:0xffaa00, bodyTopColor:0x1565c0, bodyBottomColor:0x1a1a2e, shoesColor:0x37474f, accentColor:0xff6600, hatType:'none' },
+  { id:'skin_campus',    name:'Campus Fresh',     category:'Outfit', price:0,     description:'Fresh off campus in green varsity jacket and khaki trousers.',     headColor:0xd4956a, bodyTopColor:0x388e3c, bodyBottomColor:0x795548, shoesColor:0x5d4037, accentColor:0x81c784, hatType:'cap', hatColor:0x212121 },
+  { id:'skin_casual',    name:'Casual Citizen',   category:'Outfit', price:0,     description:'Laid-back city resident in charcoal polo and relaxed denim.',      headColor:0xd4956a, bodyTopColor:0x475569, bodyBottomColor:0x334155, shoesColor:0x1e293b, accentColor:0x94a3b8, hatType:'none' },
+  { id:'skin_agbada',    name:'Agbada King',      category:'Outfit', price:2000,  description:'Traditional royalty in flowing ceremonial gold and ivory weave.',  headColor:0xffb74d, bodyTopColor:0xffd700, bodyBottomColor:0xfffde7, shoesColor:0x795548, accentColor:0xff8f00, hatType:'traditional', hatColor:0xffd700 },
+  { id:'skin_sports',    name:'Sports Boss',      category:'Outfit', price:3000,  description:'Athletic track jacket with matched trainers and snapback cap.',   headColor:0xffaa00, bodyTopColor:0xd32f2f, bodyBottomColor:0x212121, shoesColor:0xf44336, accentColor:0xffd740, hatType:'cap', hatColor:0xd32f2f },
+  { id:'skin_beach',     name:'Beach Oga',        category:'Outfit', price:4000,  description:'Tropical resort button-up in canary yellow and ocean teal shorts.',headColor:0xffaa00, bodyTopColor:0xfff176, bodyBottomColor:0x0284c7, shoesColor:0xffd54f, accentColor:0x0288d1, hatType:'cap', hatColor:0x0288d1 },
+  { id:'skin_suit',      name:'Corporate Suit',   category:'Outfit', price:5000,  description:'Dressed for the boardroom in bespoke navy wool and white tie.',    headColor:0xd4956a, bodyTopColor:0x1a237e, bodyBottomColor:0x283593, shoesColor:0x0d0d0d, accentColor:0xffffff, hatType:'none' },
+  { id:'skin_night',     name:'Night Rider',      category:'Outfit', price:8000,  description:'After-hours velvet bomber jacket in obsidian black and violet.',  headColor:0x5d4037, bodyTopColor:0x212121, bodyBottomColor:0x0d0d0d, shoesColor:0x37474f, accentColor:0x7c4dff, hatType:'none' },
+  { id:'skin_tech',      name:'Tech Pioneer',     category:'Outfit', price:12000, description:'Futuristic startup mogul look with cyan accents and sleek kicks.', headColor:0xd4956a, bodyTopColor:0x0f172a, bodyBottomColor:0x1e293b, shoesColor:0x0284c7, accentColor:0x38bdf8, hatType:'none' },
+  { id:'skin_ceo',       name:'CEO Mode',         category:'Outfit', price:15000, description:'The pinnacle of executive luxury in charcoal pinstripe and gold.',headColor:0xd4956a, bodyTopColor:0x263238, bodyBottomColor:0x37474f, shoesColor:0x0d0d0d, accentColor:0xb58a45, hatType:'none' },
+  { id:'skin_sovereign', name:'Gold Sovereign',   category:'Outfit', price:25000, description:'Pure emerald billionaire regalia trimmed with crown gold embroidery.', headColor:0xffb74d, bodyTopColor:0x064e3b, bodyBottomColor:0x065f46, shoesColor:0x92400e, accentColor:0xfbbf24, hatType:'traditional', hatColor:0xfbbf24 },
 ];
 
 // ─── MILESTONE / PROGRESSION ─────────────────────────────────────────────────
 
 export const MILESTONES: MilestoneDef[] = [
-  { id:'ms_first_biz',     name:'First Steps',        xpReward:50,   description:'Purchase your first business.',                condition:(s)=>s.ownedBusinesses.length>=1                                                         },
-  { id:'ms_three_biz',     name:'Growing Empire',     xpReward:100,  description:'Own 3 businesses.',                           condition:(s)=>s.ownedBusinesses.length>=3                                                         },
-  { id:'ms_five_biz',      name:'Business Mogul',     xpReward:200,  description:'Own 5 businesses.',                           condition:(s)=>s.ownedBusinesses.length>=5                                                         },
-  { id:'ms_ten_biz',       name:'Tycoon',             xpReward:500,  description:'Own 10 businesses.',                         condition:(s)=>s.ownedBusinesses.length>=10                                                        },
-  { id:'ms_all_biz',       name:'Empire Complete',    xpReward:2000, description:'Own all 17 businesses.',                     condition:(s)=>s.ownedBusinesses.length>=17                                                        },
-  { id:'ms_first_upgrade', name:'Improvement Drive',  xpReward:75,   description:'Upgrade any business to Level 2.',            condition:(s)=>Object.values(s.businessUpgrades||{}).some(l=>l>=2)                                },
-  { id:'ms_level3_upgrade',name:'Facility Manager',   xpReward:150,  description:'Upgrade any business to Level 3.',            condition:(s)=>Object.values(s.businessUpgrades||{}).some(l=>l>=3)                                },
-  { id:'ms_max_upgrade',   name:'Premium Standard',   xpReward:500,  description:'Upgrade any business to Level 5 (Premium).',  condition:(s)=>Object.values(s.businessUpgrades||{}).some(l=>l>=5)                                },
-  { id:'ms_cash_100k',     name:'Six Figures',        xpReward:100,  description:'Accumulate ₦100,000 cash.',                  condition:(s)=>s.cash>=100000                                                                      },
-  { id:'ms_cash_500k',     name:'Half a Million',     xpReward:250,  description:'Accumulate ₦500,000 cash.',                  condition:(s)=>s.cash>=500000                                                                      },
-  { id:'ms_cash_1m',       name:'Millionaire',        xpReward:500,  description:'Hold ₦1,000,000 cash.',                      condition:(s)=>s.cash>=1000000                                                                     },
-  { id:'ms_earnings_1m',   name:'Million Earned',     xpReward:300,  description:'Earn ₦1,000,000 total gross revenue.',        condition:(s)=>s.totalEarnings>=1000000                                                            },
-  { id:'ms_first_skin',    name:'Style Upgrade',      xpReward:50,   description:'Purchase a character skin.',                  condition:(s)=>(s.unlockedSkins||[]).some(id=>{const sk=SKIN_DEFINITIONS.find(d=>d.id===id);return sk!=null&&sk.price>0;}) },
-  { id:'ms_all_skins',     name:'Wardrobe Complete',  xpReward:1000, description:'Own all 8 character outfits.',                condition:(s)=>(s.unlockedSkins||[]).length>=8                                                     },
+  { id:'ms_first_biz',     name:'First Steps',        xpReward:50,   description:'Purchase your first business.',                condition:(s)=>s.ownedBusinesses.length>=1 },
+  { id:'ms_three_biz',     name:'Growing Empire',     xpReward:100,  description:'Own 3 businesses across the city.',             condition:(s)=>s.ownedBusinesses.length>=3 },
+  { id:'ms_five_biz',      name:'Business Mogul',     xpReward:200,  description:'Own 5 businesses across different sectors.',    condition:(s)=>s.ownedBusinesses.length>=5 },
+  { id:'ms_ten_biz',       name:'City Tycoon',        xpReward:500,  description:'Own 10 commercial enterprises.',               condition:(s)=>s.ownedBusinesses.length>=10 },
+  { id:'ms_all_biz',       name:'Empire Complete',    xpReward:2000, description:'Own all 17 businesses in the city.',           condition:(s)=>s.ownedBusinesses.length>=17 },
+  { id:'ms_first_upgrade', name:'Improvement Drive',  xpReward:75,   description:'Upgrade any business to Level 2.',              condition:(s)=>Object.values(s.businessUpgrades||{}).some(l=>l>=2) },
+  { id:'ms_level3_upgrade',name:'Facility Manager',   xpReward:150,  description:'Upgrade any business to Level 3.',              condition:(s)=>Object.values(s.businessUpgrades||{}).some(l=>l>=3) },
+  { id:'ms_level4_upgrade',name:'Capacity Builder',   xpReward:300,  description:'Upgrade any business to Level 4.',              condition:(s)=>Object.values(s.businessUpgrades||{}).some(l=>l>=4) },
+  { id:'ms_max_upgrade',   name:'Premium Standard',   xpReward:500,  description:'Upgrade any business to Level 5 (Premium).',    condition:(s)=>Object.values(s.businessUpgrades||{}).some(l=>l>=5) },
+  { id:'ms_cash_100k',     name:'Six Figures',        xpReward:100,  description:'Accumulate ₦100,000 cash balance.',            condition:(s)=>s.cash>=100000 },
+  { id:'ms_cash_500k',     name:'Half a Million',     xpReward:250,  description:'Accumulate ₦500,000 cash balance.',            condition:(s)=>s.cash>=500000 },
+  { id:'ms_cash_1m',       name:'Millionaire',        xpReward:500,  description:'Hold ₦1,000,000 cash balance.',                condition:(s)=>s.cash>=1000000 },
+  { id:'ms_networth_2m',   name:'Corporate Titan',    xpReward:750,  description:'Reach ₦2,000,000 total net worth.',             condition:(s)=>getPlayerNetWorth(s)>=2000000 },
+  { id:'ms_earnings_1m',   name:'Million Earned',     xpReward:300,  description:'Earn ₦1,000,000 total gross career revenue.',   condition:(s)=>s.totalEarnings>=1000000 },
+  { id:'ms_first_skin',    name:'Style Upgrade',      xpReward:50,   description:'Purchase a character outfit from the shop.',    condition:(s)=>(s.unlockedSkins||[]).some(id=>{const sk=SKIN_DEFINITIONS.find(d=>d.id===id);return sk!=null&&sk.price>0;}) },
+  { id:'ms_wardrobe_5',    name:'Fashion Connoisseur',xpReward:250,  description:'Unlock 5 different character outfits.',         condition:(s)=>(s.unlockedSkins||[]).length>=5 },
+  { id:'ms_all_skins',     name:'Wardrobe Complete',  xpReward:1000, description:'Own all available character outfits.',         condition:(s)=>(s.unlockedSkins||[]).length>=SKIN_DEFINITIONS.length },
 ];
+
+export const PLAYER_LEVEL_TITLES: Record<number, string> = {
+  1: 'Street Hustler',
+  2: 'Local Apprentice',
+  3: 'Small Business Owner',
+  4: 'Rising Merchant',
+  5: 'Commercial Operator',
+  6: 'Corporate Director',
+  7: 'District Mogul',
+  8: 'Industrial Baron',
+  9: 'City Tycoon',
+  10: 'Street to CEO',
+};
+
+export function getPlayerLevelTitle(level: number): string {
+  return PLAYER_LEVEL_TITLES[Math.min(10, Math.max(1, level))] ?? 'Entrepreneur';
+}
 
 export function xpForLevel(n: number): number {
   if (n <= 1) return 0;
@@ -177,17 +210,89 @@ export function computePlayerLevel(xp: number): number {
   return Math.min(10, Math.max(1, Math.floor(1 + Math.sqrt(xp / 100))));
 }
 
+/**
+ * Authoritative Business Valuation Formula:
+ * Asset Value = Purchase Price * (1 + 0.4 * (level - 1)) + Upgrade Investment
+ * Performance Value = 25% of Cumulative Net Profit + (5 * Current Net Profit/Min)
+ * Valuation = Asset Value + Performance Value
+ */
+export function getBusinessValuation(businessId: string, st: GameState): number {
+  const def = BUSINESS_DEFINITIONS.find(b => b.id === businessId);
+  if (!def) return 0;
+  const level        = st.businessUpgrades?.[businessId] ?? 1;
+  const upgradeSpend = st.businessUpgradeSpend?.[businessId] ?? 0;
+  const netCumul     = (st.businessRevenue?.[businessId] ?? 0) - (st.businessExpenses?.[businessId] ?? 0);
+  const eff          = getEffectiveRates(businessId, level);
+  const assetValue   = Math.floor(def.price * (1 + 0.4 * (level - 1))) + upgradeSpend;
+  const profitValue  = Math.max(0, Math.floor(netCumul * 0.25)) + Math.max(0, eff.net * 5);
+  return assetValue + profitValue;
+}
+
 export function getPlayerNetWorth(st: GameState): number {
-  const bizValue = st.ownedBusinesses.reduce((sum, id) => {
-    const def = BUSINESS_DEFINITIONS.find(b => b.id === id);
-    if (!def) return sum;
-    const level       = st.businessUpgrades?.[id] ?? 1;
-    const upgradeSpend = st.businessUpgradeSpend?.[id] ?? 0;
-    const netCumul    = (st.businessRevenue?.[id] ?? 0) - (st.businessExpenses?.[id] ?? 0);
-    const levelFactor = 1 + (level - 1) * 0.5;
-    return sum + Math.floor(def.price * levelFactor) + upgradeSpend + Math.floor(netCumul * 0.1);
-  }, 0);
+  const bizValue = (st.ownedBusinesses || []).reduce((sum, id) => sum + getBusinessValuation(id, st), 0);
   return st.cash + bizValue;
+}
+
+export interface BusinessFinancialStats {
+  purchasePrice: number;
+  upgradeSpend: number;
+  totalInvestment: number;
+  cumulativeGross: number;
+  cumulativeOperatingCost: number;
+  cumulativeNetProfit: number;
+  currentGrossPerMin: number;
+  currentOperatingCostPerMin: number;
+  currentNetProfitPerMin: number;
+  capacity: number;
+  level: number;
+  tierName: string;
+  valuation: number;
+  paybackStatus: string;
+  paybackMinutes: number | null;
+}
+
+export function getBusinessFinancialStats(businessId: string, st: GameState): BusinessFinancialStats {
+  const def = BUSINESS_DEFINITIONS.find(b => b.id === businessId);
+  const level = st.businessUpgrades?.[businessId] ?? 1;
+  const upgradeSpend = st.businessUpgradeSpend?.[businessId] ?? 0;
+  const gross = st.businessRevenue?.[businessId] ?? 0;
+  const expenses = st.businessExpenses?.[businessId] ?? 0;
+  const net = gross - expenses;
+  const eff = getEffectiveRates(businessId, level);
+  const price = def?.price ?? 0;
+  const totalInvestment = price + upgradeSpend;
+  const remainingPayback = totalInvestment - net;
+
+  let paybackStatus: string;
+  let paybackMinutes: number | null = null;
+
+  if (net >= totalInvestment) {
+    paybackStatus = 'Recouped (Profitable)';
+    paybackMinutes = 0;
+  } else if (eff.net > 0) {
+    paybackMinutes = Math.ceil(remainingPayback / eff.net);
+    paybackStatus = `~${paybackMinutes} mins`;
+  } else {
+    paybackStatus = 'Unprofitable (Operating at loss)';
+  }
+
+  return {
+    purchasePrice: price,
+    upgradeSpend,
+    totalInvestment,
+    cumulativeGross: gross,
+    cumulativeOperatingCost: expenses,
+    cumulativeNetProfit: net,
+    currentGrossPerMin: eff.gross,
+    currentOperatingCostPerMin: eff.cost,
+    currentNetProfitPerMin: eff.net,
+    capacity: eff.capacity,
+    level,
+    tierName: eff.tierName,
+    valuation: getBusinessValuation(businessId, st),
+    paybackStatus,
+    paybackMinutes,
+  };
 }
 
 // ─── GAME STATE ──────────────────────────────────────────────────────────────
@@ -206,7 +311,7 @@ const DEFAULT_STATE: GameState = {
   businessUpgradeSpend: {},
   businessRevenue: {},
   businessExpenses: {},
-  unlockedSkins: ['skin_street', 'skin_campus'],
+  unlockedSkins: ['skin_street', 'skin_campus', 'skin_casual'],
   equippedOutfit: 'skin_street',
   playerXP: 0,
   playerLevel: 1,
@@ -235,7 +340,7 @@ export const loadGame = () => {
       businessUpgradeSpend:          (p.businessUpgradeSpend && typeof p.businessUpgradeSpend==='object') ? (p.businessUpgradeSpend as Record<string,number>) : {},
       businessRevenue:               (p.businessRevenue && typeof p.businessRevenue==='object') ? (p.businessRevenue as Record<string,number>) : {},
       businessExpenses:              (p.businessExpenses && typeof p.businessExpenses==='object') ? (p.businessExpenses as Record<string,number>) : {},
-      unlockedSkins:                 Array.isArray(p.unlockedSkins)              ? p.unlockedSkins             : ['skin_street','skin_campus'],
+      unlockedSkins:                 Array.isArray(p.unlockedSkins)              ? p.unlockedSkins             : ['skin_street','skin_campus','skin_casual'],
       equippedOutfit:                typeof p.equippedOutfit==='string'          ? p.equippedOutfit            : 'skin_street',
       playerXP:                      typeof p.playerXP==='number'               ? p.playerXP                  : 0,
       playerLevel:                   typeof p.playerLevel==='number'            ? p.playerLevel               : 1,
@@ -249,6 +354,7 @@ export const loadGame = () => {
     // Guarantee free starters
     if (!state.unlockedSkins.includes('skin_street')) state.unlockedSkins.push('skin_street');
     if (!state.unlockedSkins.includes('skin_campus')) state.unlockedSkins.push('skin_campus');
+    if (!state.unlockedSkins.includes('skin_casual')) state.unlockedSkins.push('skin_casual');
     // Validate equipped skin
     if (!state.unlockedSkins.includes(state.equippedOutfit)) state.equippedOutfit = 'skin_street';
   } catch (e) {
@@ -345,7 +451,7 @@ export const buyBusiness = (businessId: string): { success: boolean; message: st
   updateGameState({
     cash:            state.cash - def.price,
     ownedBusinesses: [...state.ownedBusinesses, businessId],
-    ledger:          [{ date:new Date().toISOString(), amount:-def.price, description:`Purchased ${def.name}`, type:'purchase', businessId }, ...state.ledger].slice(0,150),
+    ledger:          [{ date:new Date().toISOString(), amount:-def.price, description:`Purchased ${def.name}`, type:'purchase' as const, businessId }, ...state.ledger].slice(0,150),
     playerXP:        newXP,
     playerLevel:     computePlayerLevel(newXP),
   });
@@ -381,7 +487,7 @@ export const upgradeBusinessLevel = (businessId: string): { success: boolean; me
     cash:                 state.cash - cost,
     businessUpgrades:     newUpgrades,
     businessUpgradeSpend: newUpgradeSpend,
-    ledger:               [{ date:new Date().toISOString(), amount:-cost, description:`Upgraded ${def.name} to Level ${toLevel} (${tierDef.name})`, type:'upgrade', businessId }, ...state.ledger].slice(0,150),
+    ledger:               [{ date:new Date().toISOString(), amount:-cost, description:`Upgraded ${def.name} to Level ${toLevel} (${tierDef.name})`, type:'upgrade' as const, businessId }, ...state.ledger].slice(0,150),
     playerXP:             newXP,
     playerLevel:          computePlayerLevel(newXP),
     // Resume if suspended — give it a fresh chance
@@ -403,7 +509,7 @@ export const buySkin = (skinId: string): { success: boolean; message: string } =
   const newXP = state.playerXP + 10;
   const newCash = skin.price > 0 ? state.cash - skin.price : state.cash;
   const newLedger: Transaction[] = skin.price > 0
-    ? [{ date:new Date().toISOString(), amount:-skin.price, description:`Purchased outfit: ${skin.name}`, type:'skin' }, ...state.ledger]
+    ? [{ date:new Date().toISOString(), amount:-skin.price, description:`Purchased outfit: ${skin.name}`, type:'skin' as const }, ...state.ledger]
     : state.ledger;
 
   updateGameState({
