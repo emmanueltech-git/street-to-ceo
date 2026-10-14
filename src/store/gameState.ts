@@ -329,10 +329,16 @@ export function getEffectiveRates(businessId: string, level: number): {
 
 // ─── ACTIVE BUSINESS DETAILS HELPER ──────────────────────────────────────────
 
-export function getActiveBusinessDetails(businessId: string, st: GameState = getGameState()): BusinessDef | null {
-  const def = BUSINESS_DEFINITIONS.find(b => b.id === businessId);
-  if (!def) return null;
-  const bpId = st.developedProperties?.[businessId];
+export function getActiveBusinessDetails(
+  businessIdOrDef: string | BusinessDef,
+  st: GameState = getGameState()
+): BusinessDef {
+  const def = typeof businessIdOrDef === 'string'
+    ? (BUSINESS_DEFINITIONS.find(b => b.id === businessIdOrDef) ?? BUSINESS_DEFINITIONS[0])
+    : businessIdOrDef;
+  if (!def) return BUSINESS_DEFINITIONS[0];
+
+  const bpId = st.developedProperties?.[def.id];
   if (bpId && def.developmentOptions) {
     const bp = def.developmentOptions.find(b => b.id === bpId);
     if (bp) {

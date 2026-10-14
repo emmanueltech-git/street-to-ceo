@@ -78,10 +78,16 @@ function App() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (confirmUpgradeBusiness) {
+        if (confirmUnlockDistrict) {
+          setConfirmUnlockDistrict(null);
+        } else if (confirmDevelopProperty) {
+          setConfirmDevelopProperty(null);
+        } else if (confirmUpgradeBusiness) {
           setConfirmUpgradeBusiness(null);
         } else if (gameState.panelOpen) {
           updateGameState({ panelOpen: false });
+        } else if (showDistricts) {
+          setShowDistricts(false);
         } else if (showPortfolio) {
           setShowPortfolio(false);
         } else if (showWardrobe) {
@@ -107,6 +113,7 @@ function App() {
         gameState.activeInteraction &&
         !gameState.panelOpen &&
         !isPaused &&
+        !showDistricts &&
         !showDirectory &&
         !showPortfolio &&
         !showWardrobe &&
@@ -114,7 +121,9 @@ function App() {
         !showLedger &&
         !showReports &&
         !isMenuOpen &&
-        !confirmUpgradeBusiness
+        !confirmUpgradeBusiness &&
+        !confirmUnlockDistrict &&
+        !confirmDevelopProperty
       ) {
         e.preventDefault();
         updateGameState({ panelOpen: true });
@@ -126,6 +135,7 @@ function App() {
     gameState.activeInteraction,
     gameState.panelOpen,
     isPaused,
+    showDistricts,
     showDirectory,
     showPortfolio,
     showWardrobe,
@@ -134,6 +144,8 @@ function App() {
     showReports,
     isMenuOpen,
     confirmUpgradeBusiness,
+    confirmUnlockDistrict,
+    confirmDevelopProperty,
   ]);
 
   useEffect(() => {
@@ -144,7 +156,7 @@ function App() {
   }, [message]);
 
   const activeBusiness = gameState.activeInteraction
-    ? BUSINESS_DEFINITIONS.find((b) => b.id === gameState.activeInteraction)
+    ? getActiveBusinessDetails(gameState.activeInteraction, gameState)
     : null;
 
   const currentPanelBusiness = gameState.panelOpen && activeBusiness ? activeBusiness : null;
@@ -189,6 +201,29 @@ function App() {
     }
   };
 
+  const handleConfirmUnlockDistrict = () => {
+    if (!confirmUnlockDistrict) return;
+    const result = unlockDistrict(confirmUnlockDistrict.id);
+    if (result.success) {
+      setMessage({ text: result.message, type: 'success' });
+      setConfirmUnlockDistrict(null);
+    } else {
+      setMessage({ text: result.message, type: 'error' });
+    }
+  };
+
+  const handleConfirmDevelopProperty = () => {
+    if (!confirmDevelopProperty) return;
+    const { plot, blueprint } = confirmDevelopProperty;
+    const result = developProperty(plot.id, blueprint.id);
+    if (result.success) {
+      setMessage({ text: result.message, type: 'success' });
+      setConfirmDevelopProperty(null);
+    } else {
+      setMessage({ text: result.message, type: 'error' });
+    }
+  };
+
   const handleBuySkin = (skin: SkinDef) => {
     const result = buySkin(skin.id);
     if (result.success) {
@@ -215,6 +250,7 @@ function App() {
     setTargetWaypoint(businessId);
     setShowDirectory(false);
     setShowPortfolio(false);
+    setShowDistricts(false);
     updateGameState({ panelOpen: false });
     const def = BUSINESS_DEFINITIONS.find((b) => b.id === businessId);
     if (def) {
@@ -226,6 +262,7 @@ function App() {
     updateGameState({ activeInteraction: b.id, panelOpen: true });
     setShowDirectory(false);
     setShowPortfolio(false);
+    setShowDistricts(false);
   };
 
   // Authoritative financial calculations

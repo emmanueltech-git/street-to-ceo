@@ -258,7 +258,7 @@ export class CityEnvironment {
     g.strokeRect(x + 8, y + 8, width - 16, height - 24);
 
     // 5. Custom Architectural Feature per Business
-    this.drawBuildingProps(g, def, active);
+    this.drawBuildingProps(g, def);
 
     // 6. Entrance Doorway (bottom center)
     const doorW = 36;
@@ -332,8 +332,7 @@ export class CityEnvironment {
 
   private drawBuildingProps(
     g: Phaser.GameObjects.Graphics,
-    def: BusinessDef,
-    active: { name: string; type: string; category: string }
+    def: BusinessDef
   ) {
     const { worldX: x, worldY: y, width, height, id } = def;
 
