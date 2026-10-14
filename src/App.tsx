@@ -6,6 +6,7 @@ import {
   subscribeToGameState,
   updateGameState,
   BUSINESS_DEFINITIONS,
+  DISTRICT_DEFINITIONS,
   UPGRADE_TIER_DEFS,
   SKIN_DEFINITIONS,
   MILESTONES,
@@ -22,8 +23,11 @@ import {
   setTargetWaypoint,
   clearTargetWaypoint,
   dismissMilestoneNotification,
+  unlockDistrict,
+  developProperty,
+  getActiveBusinessDetails,
 } from './store/gameState';
-import type { BusinessDef, Transaction, SkinDef } from './store/gameState';
+import type { BusinessDef, Transaction, SkinDef, DistrictDef, PropertyBlueprint } from './store/gameState';
 import './App.css';
 
 // Primary Visual Palette:
@@ -37,6 +41,7 @@ import './App.css';
 function App() {
   const [gameState, setGameState] = useState(getGameState());
   const [isPaused, setIsPaused] = useState(false);
+  const [showDistricts, setShowDistricts] = useState(false);
   const [showDirectory, setShowDirectory] = useState(false);
   const [showPortfolio, setShowPortfolio] = useState(false);
   const [showWardrobe, setShowWardrobe] = useState(false);
@@ -45,6 +50,8 @@ function App() {
   const [showLedger, setShowLedger] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [confirmUpgradeBusiness, setConfirmUpgradeBusiness] = useState<BusinessDef | null>(null);
+  const [confirmUnlockDistrict, setConfirmUnlockDistrict] = useState<DistrictDef | null>(null);
+  const [confirmDevelopProperty, setConfirmDevelopProperty] = useState<{ plot: BusinessDef; blueprint: PropertyBlueprint } | null>(null);
 
   // Wardrobe state
   const [selectedWardrobeSkinId, setSelectedWardrobeSkinId] = useState<string>(gameState.equippedOutfit || 'skin_street');
@@ -56,6 +63,7 @@ function App() {
   // Directory filter states
   const [directorySearch, setDirectorySearch] = useState('');
   const [directoryFilter, setDirectoryFilter] = useState<'ALL' | 'OWNED' | 'UNOWNED'>('ALL');
+  const [directoryDistrictFilter, setDirectoryDistrictFilter] = useState<string>('ALL');
 
   // Ledger filter in Reports/Ledger
   const [ledgerFilter, setLedgerFilter] = useState<'ALL' | 'REVENUE' | 'EXPENSE' | 'PURCHASE' | 'UPGRADE' | 'SKIN'>('ALL');

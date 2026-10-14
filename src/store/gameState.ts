@@ -1,5 +1,19 @@
 // ─── INTERFACES ──────────────────────────────────────────────────────────────
 
+export interface PropertyBlueprint {
+  id: string;
+  name: string;
+  type: string;
+  category: string;
+  constructionCost: number;
+  incomePerMinute: number;
+  operatingCostPerMinute: number;
+  description: string;
+  accentColor: number;
+  roofColor: number;
+  signBgColor: number;
+}
+
 export interface BusinessDef {
   id: string;
   name: string;
@@ -16,6 +30,24 @@ export interface BusinessDef {
   accentColor: number;
   roofColor: number;
   signBgColor: number;
+  districtId?: string; // 'district_starter' | 'district_commercial' | 'district_industrial' | 'district_luxury'
+  isDevelopmentPlot?: boolean;
+  developmentOptions?: PropertyBlueprint[];
+}
+
+export interface DistrictDef {
+  id: string;
+  name: string;
+  tagline: string;
+  description: string;
+  accentColor: string;
+  themeColorHex: number;
+  groundColor: number;
+  unlockCost: number;
+  requiredPlayerLevel: number;
+  requiredBusinessesOwned: number;
+  requiredNetWorth: number;
+  worldBounds: { minX: number; maxX: number; minY: number; maxY: number };
 }
 
 export interface UpgradeTierDef {
@@ -84,28 +116,162 @@ export interface GameState {
   completedMilestones: string[];
   pendingMilestoneNotifications: string[];
   targetWaypoint: Waypoint | null;
+  // Phase 5 Multi-District & Property Development
+  unlockedDistricts: string[];
+  developedProperties: Record<string, string>; // plotId -> blueprintId
 }
+
+// ─── DISTRICT DEFINITIONS ────────────────────────────────────────────────────
+
+export const DISTRICT_DEFINITIONS: DistrictDef[] = [
+  {
+    id: 'district_starter',
+    name: 'Starter District',
+    tagline: 'Old Town Commercial Quarter',
+    description: 'The bustling historic street core where every empire begins. Features convenience retail, casual dining, local shops, and neighborhood essentials.',
+    accentColor: '#315B43',
+    themeColorHex: 0x315b43,
+    groundColor: 0x233127,
+    unlockCost: 0,
+    requiredPlayerLevel: 1,
+    requiredBusinessesOwned: 0,
+    requiredNetWorth: 0,
+    worldBounds: { minX: 0, maxX: 1850, minY: 0, maxY: 1750 },
+  },
+  {
+    id: 'district_commercial',
+    name: 'Commercial District',
+    tagline: 'Downtown Financial Boulevard',
+    description: 'A prestigious high-rise sector of corporate law firms, private banks, media towers, and prime commercial developments.',
+    accentColor: '#0284c7',
+    themeColorHex: 0x0284c7,
+    groundColor: 0x1e293b,
+    unlockCost: 100000,
+    requiredPlayerLevel: 2,
+    requiredBusinessesOwned: 2,
+    requiredNetWorth: 150000,
+    worldBounds: { minX: 1850, maxX: 3600, minY: 0, maxY: 1750 },
+  },
+  {
+    id: 'district_industrial',
+    name: 'Industrial District',
+    tagline: 'Midland Logistics Basin & Works',
+    description: 'Heavy industrial production, mega-warehouses, solar energy factories, and freight hubs supplying the wider metropolis.',
+    accentColor: '#d97706',
+    themeColorHex: 0xd97706,
+    groundColor: 0x292524,
+    unlockCost: 250000,
+    requiredPlayerLevel: 3,
+    requiredBusinessesOwned: 4,
+    requiredNetWorth: 400000,
+    worldBounds: { minX: 0, maxX: 1850, minY: 1750, maxY: 3600 },
+  },
+  {
+    id: 'district_luxury',
+    name: 'Luxury District',
+    tagline: 'Waterfront Heights & Sovereign Enclave',
+    description: 'Ultra-exclusive private yacht marina, sky penthouses, gaming palaces, and waterfront reserves for multi-millionaires.',
+    accentColor: '#b58a45',
+    themeColorHex: 0xb58a45,
+    groundColor: 0x064e3b,
+    unlockCost: 600000,
+    requiredPlayerLevel: 5,
+    requiredBusinessesOwned: 7,
+    requiredNetWorth: 1200000,
+    worldBounds: { minX: 1850, maxX: 3600, minY: 1750, maxY: 3600 },
+  },
+];
 
 // ─── BUSINESS DEFINITIONS ────────────────────────────────────────────────────
 
 export const BUSINESS_DEFINITIONS: BusinessDef[] = [
-  { id:'b_corner',       name:'Corner Shop',            type:'Retail',            category:'Retail & Daily Goods',       price:25000,  incomePerMinute:2000,  operatingCostPerMinute:600,   description:'A neighborhood convenience store stocked with cold beverages, daily groceries, and provisions.',                                     worldX:120,  worldY:120,  width:260, height:120, accentColor:0x315b43, roofColor:0x252923, signBgColor:0x315b43 },
-  { id:'b_restaurant',   name:'Small Restaurant',       type:'Dining',            category:'Food & Hospitality',         price:40000,  incomePerMinute:3500,  operatingCostPerMinute:1100,  description:'A vibrant street diner serving smoky jollof rice, peppered meats, and freshly fried plantains.',                                       worldX:520,  worldY:120,  width:260, height:120, accentColor:0xb58a45, roofColor:0x42281d, signBgColor:0x8b3a2b },
-  { id:'b_clothing',     name:'Clothing Store',         type:'Retail',            category:'Fashion & Apparel',          price:35000,  incomePerMinute:2800,  operatingCostPerMinute:800,   description:'A contemporary boutique showcasing vibrant native fabrics, streetwear sneakers, and tailoring.',                                       worldX:920,  worldY:120,  width:260, height:120, accentColor:0x3b5266, roofColor:0x22303c, signBgColor:0x2c4a6f },
-  { id:'b_phone',        name:'Phone Accessories Shop', type:'Tech Retail',       category:'Technology & Gadgets',       price:45000,  incomePerMinute:3600,  operatingCostPerMinute:1200,  description:'Brisk counter selling fast chargers, braided cables, tempered glass shields, and earbuds.',                                             worldX:1320, worldY:120,  width:260, height:120, accentColor:0x0284c7, roofColor:0x0f172a, signBgColor:0x0369a1 },
-  { id:'b_barber',       name:'Barber Shop',            type:'Personal Care',     category:'Local Services',             price:60000,  incomePerMinute:4800,  operatingCostPerMinute:1800,  description:'Trendy neighborhood barbershop humming with Afrobeats, sharp fades, and beard trims.',                                                  worldX:1720, worldY:120,  width:260, height:120, accentColor:0xbe123c, roofColor:0x334155, signBgColor:0x9f1239 },
-  { id:'b_bakery',       name:'Bakery',                 type:'Food Production',   category:'Food & Hospitality',         price:75000,  incomePerMinute:6400,  operatingCostPerMinute:2800,  description:'Commercial bakery oven churning out fluffy Agege loaves, golden meat pies, and donuts.',                                               worldX:120,  worldY:520,  width:260, height:120, accentColor:0xd97706, roofColor:0x451a03, signBgColor:0xb45309 },
-  { id:'b_carwash',      name:'Car Wash',               type:'Auto Services',     category:'Automotive & Logistics',     price:85000,  incomePerMinute:6800,  operatingCostPerMinute:2400,  description:'Active multi-bay jet wash cleaning sedans, commercial minibuses, and luxury SUVs.',                                                    worldX:520,  worldY:520,  width:260, height:120, accentColor:0x0891b2, roofColor:0x164e63, signBgColor:0x0e7490 },
-  { id:'b_farm',         name:'Farm',                   type:'Agriculture',       category:'Agriculture & Food Supply',  price:90000,  incomePerMinute:7200,  operatingCostPerMinute:2800,  description:'Sustainable peri-urban agricultural hub producing organic greens, poultry crates, and tubers.',                                         worldX:920,  worldY:520,  width:260, height:120, accentColor:0x4d7c0f, roofColor:0x27272a, signBgColor:0x3f6212 },
-  { id:'b_gym',          name:'Gym',                    type:'Fitness & Health',  category:'Health & Wellness',          price:100000, incomePerMinute:8000,  operatingCostPerMinute:3200,  description:'Heavy iron fitness center packed with power racks, boxing bags, cardio treadmills, and coaches.',                                        worldX:1320, worldY:520,  width:260, height:120, accentColor:0xeab308, roofColor:0x18181b, signBgColor:0xca8a04 },
-  { id:'b_pharmacy',     name:'Pharmacy',               type:'Healthcare',        category:'Health & Wellness',          price:120000, incomePerMinute:9000,  operatingCostPerMinute:4200,  description:'Certified community chemist dispensing vital prescriptions, supplements, and first-aid supplies.',                                       worldX:1720, worldY:520,  width:260, height:120, accentColor:0x16a34a, roofColor:0x1e293b, signBgColor:0x15803d },
-  { id:'b_supermarket',  name:'Supermarket',            type:'Grocery Retail',    category:'Retail & Daily Goods',       price:150000, incomePerMinute:12000, operatingCostPerMinute:6000,  description:'Full-service grocery store with checkout scanners, chilled dairy cases, and bulk household aisles.',                                     worldX:120,  worldY:920,  width:260, height:120, accentColor:0x2563eb, roofColor:0x1e3a8a, signBgColor:0x1d4ed8 },
-  { id:'b_electronics',  name:'Electronics Store',      type:'Consumer Tech',     category:'Technology & Gadgets',       price:180000, incomePerMinute:14400, operatingCostPerMinute:6400,  description:'Tech showroom displaying 4K smart screens, solar inverter batteries, laptops, and audio rigs.',                                          worldX:520,  worldY:920,  width:260, height:120, accentColor:0x6366f1, roofColor:0x0f172a, signBgColor:0x4338ca },
-  { id:'b_delivery',     name:'Delivery Company',       type:'Logistics',         category:'Automotive & Logistics',     price:220000, incomePerMinute:16000, operatingCostPerMinute:8000,  description:'High-speed dispatch depot coordinating motorbikes and courier vans delivering goods citywide.',                                          worldX:920,  worldY:920,  width:260, height:120, accentColor:0xe11d48, roofColor:0x334155, signBgColor:0xbe123c },
-  { id:'b_fuel',         name:'Fuel Station',           type:'Energy & Fuel',     category:'Infrastructure & Energy',    price:250000, incomePerMinute:20000, operatingCostPerMinute:12000, description:'High-volume petroleum filling station with twin canopy islands, diesel pumps, and mart.',                                                worldX:1320, worldY:920,  width:260, height:120, accentColor:0xd97706, roofColor:0x292524, signBgColor:0xb45309 },
-  { id:'b_realestate',   name:'Real Estate Agency',     type:'Property Brokerage',category:'Corporate & Finance',        price:300000, incomePerMinute:24000, operatingCostPerMinute:10000, description:'Elite property brokerage managing luxury duplex developments, commercial leases, and land deals.',                                       worldX:1720, worldY:920,  width:260, height:120, accentColor:0xb58a45, roofColor:0x1f2937, signBgColor:0x854d0e },
-  { id:'b_construction', name:'Construction Company',   type:'Civil Works',       category:'Infrastructure & Energy',    price:350000, incomePerMinute:28000, operatingCostPerMinute:16000, description:'Heavy engineering contractor running tower cranes, cement mixing trucks, and roadwork crews.',                                            worldX:120,  worldY:1320, width:260, height:120, accentColor:0xf59e0b, roofColor:0x1c1917, signBgColor:0xd97706 },
-  { id:'b_hotel',        name:'Hotel',                  type:'Hospitality',       category:'Food & Hospitality',         price:400000, incomePerMinute:32000, operatingCostPerMinute:20000, description:'Prestige multi-level hotel palace with luxury suites, banquet halls, and panoramic rooftop dining.',                                     worldX:520,  worldY:1320, width:260, height:130, accentColor:0x315b43, roofColor:0x1e1b4b, signBgColor:0x1e3a8a },
+  // ── STARTER DISTRICT (Original 17 Enterprises Preserved) ───────────────────
+  { id:'b_corner',       name:'Corner Shop',            type:'Retail',            category:'Retail & Daily Goods',       price:25000,  incomePerMinute:2000,  operatingCostPerMinute:600,   description:'A neighborhood convenience store stocked with cold beverages, daily groceries, and provisions.',                                     worldX:120,  worldY:120,  width:260, height:120, accentColor:0x315b43, roofColor:0x252923, signBgColor:0x315b43, districtId:'district_starter' },
+  { id:'b_restaurant',   name:'Small Restaurant',       type:'Dining',            category:'Food & Hospitality',         price:40000,  incomePerMinute:3500,  operatingCostPerMinute:1100,  description:'A vibrant street diner serving smoky jollof rice, peppered meats, and freshly fried plantains.',                                       worldX:520,  worldY:120,  width:260, height:120, accentColor:0xb58a45, roofColor:0x42281d, signBgColor:0x8b3a2b, districtId:'district_starter' },
+  { id:'b_clothing',     name:'Clothing Store',         type:'Retail',            category:'Fashion & Apparel',          price:35000,  incomePerMinute:2800,  operatingCostPerMinute:800,   description:'A contemporary boutique showcasing vibrant native fabrics, streetwear sneakers, and tailoring.',                                       worldX:920,  worldY:120,  width:260, height:120, accentColor:0x3b5266, roofColor:0x22303c, signBgColor:0x2c4a6f, districtId:'district_starter' },
+  { id:'b_phone',        name:'Phone Accessories Shop', type:'Tech Retail',       category:'Technology & Gadgets',       price:45000,  incomePerMinute:3600,  operatingCostPerMinute:1200,  description:'Brisk counter selling fast chargers, braided cables, tempered glass shields, and earbuds.',                                             worldX:1320, worldY:120,  width:260, height:120, accentColor:0x0284c7, roofColor:0x0f172a, signBgColor:0x0369a1, districtId:'district_starter' },
+  { id:'b_barber',       name:'Barber Shop',            type:'Personal Care',     category:'Local Services',             price:60000,  incomePerMinute:4800,  operatingCostPerMinute:1800,  description:'Trendy neighborhood barbershop humming with Afrobeats, sharp fades, and beard trims.',                                                  worldX:1720, worldY:120,  width:260, height:120, accentColor:0xbe123c, roofColor:0x334155, signBgColor:0x9f1239, districtId:'district_starter' },
+  { id:'b_bakery',       name:'Bakery',                 type:'Food Production',   category:'Food & Hospitality',         price:75000,  incomePerMinute:6400,  operatingCostPerMinute:2800,  description:'Commercial bakery oven churning out fluffy Agege loaves, golden meat pies, and donuts.',                                               worldX:120,  worldY:520,  width:260, height:120, accentColor:0xd97706, roofColor:0x451a03, signBgColor:0xb45309, districtId:'district_starter' },
+  { id:'b_carwash',      name:'Car Wash',               type:'Auto Services',     category:'Automotive & Logistics',     price:85000,  incomePerMinute:6800,  operatingCostPerMinute:2400,  description:'Active multi-bay jet wash cleaning sedans, commercial minibuses, and luxury SUVs.',                                                    worldX:520,  worldY:520,  width:260, height:120, accentColor:0x0891b2, roofColor:0x164e63, signBgColor:0x0e7490, districtId:'district_starter' },
+  { id:'b_farm',         name:'Farm',                   type:'Agriculture',       category:'Agriculture & Food Supply',  price:90000,  incomePerMinute:7200,  operatingCostPerMinute:2800,  description:'Sustainable peri-urban agricultural hub producing organic greens, poultry crates, and tubers.',                                         worldX:920,  worldY:520,  width:260, height:120, accentColor:0x4d7c0f, roofColor:0x27272a, signBgColor:0x3f6212, districtId:'district_starter' },
+  { id:'b_gym',          name:'Gym',                    type:'Fitness & Health',  category:'Health & Wellness',          price:100000, incomePerMinute:8000,  operatingCostPerMinute:3200,  description:'Heavy iron fitness center packed with power racks, boxing bags, cardio treadmills, and coaches.',                                        worldX:1320, worldY:520,  width:260, height:120, accentColor:0xeab308, roofColor:0x18181b, signBgColor:0xca8a04, districtId:'district_starter' },
+  { id:'b_pharmacy',     name:'Pharmacy',               type:'Healthcare',        category:'Health & Wellness',          price:120000, incomePerMinute:9000,  operatingCostPerMinute:4200,  description:'Certified community chemist dispensing vital prescriptions, supplements, and first-aid supplies.',                                       worldX:1720, worldY:520,  width:260, height:120, accentColor:0x16a34a, roofColor:0x1e293b, signBgColor:0x15803d, districtId:'district_starter' },
+  { id:'b_supermarket',  name:'Supermarket',            type:'Grocery Retail',    category:'Retail & Daily Goods',       price:150000, incomePerMinute:12000, operatingCostPerMinute:6000,  description:'Full-service grocery store with checkout scanners, chilled dairy cases, and bulk household aisles.',                                     worldX:120,  worldY:920,  width:260, height:120, accentColor:0x2563eb, roofColor:0x1e3a8a, signBgColor:0x1d4ed8, districtId:'district_starter' },
+  { id:'b_electronics',  name:'Electronics Store',      type:'Consumer Tech',     category:'Technology & Gadgets',       price:180000, incomePerMinute:14400, operatingCostPerMinute:6400,  description:'Tech showroom displaying 4K smart screens, solar inverter batteries, laptops, and audio rigs.',                                          worldX:520,  worldY:920,  width:260, height:120, accentColor:0x6366f1, roofColor:0x0f172a, signBgColor:0x4338ca, districtId:'district_starter' },
+  { id:'b_delivery',     name:'Delivery Company',       type:'Logistics',         category:'Automotive & Logistics',     price:220000, incomePerMinute:16000, operatingCostPerMinute:8000,  description:'High-speed dispatch depot coordinating motorbikes and courier vans delivering goods citywide.',                                          worldX:920,  worldY:920,  width:260, height:120, accentColor:0xe11d48, roofColor:0x334155, signBgColor:0xbe123c, districtId:'district_starter' },
+  { id:'b_fuel',         name:'Fuel Station',           type:'Energy & Fuel',     category:'Infrastructure & Energy',    price:250000, incomePerMinute:20000, operatingCostPerMinute:12000, description:'High-volume petroleum filling station with twin canopy islands, diesel pumps, and mart.',                                                worldX:1320, worldY:920,  width:260, height:120, accentColor:0xd97706, roofColor:0x292524, signBgColor:0xb45309, districtId:'district_starter' },
+  { id:'b_realestate',   name:'Real Estate Agency',     type:'Property Brokerage',category:'Corporate & Finance',        price:300000, incomePerMinute:24000, operatingCostPerMinute:10000, description:'Elite property brokerage managing luxury duplex developments, commercial leases, and land deals.',                                       worldX:1720, worldY:920,  width:260, height:120, accentColor:0xb58a45, roofColor:0x1f2937, signBgColor:0x854d0e, districtId:'district_starter' },
+  { id:'b_construction', name:'Construction Company',   type:'Civil Works',       category:'Infrastructure & Energy',    price:350000, incomePerMinute:28000, operatingCostPerMinute:16000, description:'Heavy engineering contractor running tower cranes, cement mixing trucks, and roadwork crews.',                                            worldX:120,  worldY:1320, width:260, height:120, accentColor:0xf59e0b, roofColor:0x1c1917, signBgColor:0xd97706, districtId:'district_starter' },
+  { id:'b_hotel',        name:'Hotel',                  type:'Hospitality',       category:'Food & Hospitality',         price:400000, incomePerMinute:32000, operatingCostPerMinute:20000, description:'Prestige multi-level hotel palace with luxury suites, banquet halls, and panoramic rooftop dining.',                                     worldX:520,  worldY:1320, width:260, height:130, accentColor:0x315b43, roofColor:0x1e1b4b, signBgColor:0x1e3a8a, districtId:'district_starter' },
+
+  // ── COMMERCIAL DISTRICT (Downtown Financial Boulevard) ────────────────────
+  { id:'b_comm_law',     name:'Corporate Law Firm',     type:'Legal Services',    category:'Corporate & Finance',        price:180000, incomePerMinute:16000, operatingCostPerMinute:6800,  description:'Prestige corporate advocacy handling cross-border merger deals, equity agreements, and compliance.',                                    worldX:2050, worldY:150,  width:260, height:120, accentColor:0x0284c7, roofColor:0x0f172a, signBgColor:0x0369a1, districtId:'district_commercial' },
+  { id:'b_comm_bank',    name:'Commercial Investment Bank', type:'Banking & Finance', category:'Corporate & Finance',   price:420000, incomePerMinute:34000, operatingCostPerMinute:16000, description:'Full-reserve financial institution offering commercial lines of credit, treasury bonds, and enterprise loans.',                         worldX:2500, worldY:150,  width:260, height:120, accentColor:0x1d4ed8, roofColor:0x1e1b4b, signBgColor:0x1e40af, districtId:'district_commercial' },
+  { id:'b_comm_tower',   name:'Metropolitan Media Tower', type:'Media & Tech',    category:'Technology & Media',         price:580000, incomePerMinute:48000, operatingCostPerMinute:22000, description:'Towering headquarters transmitting digital news streams, financial analysis networks, and national advertising.',                        worldX:2950, worldY:150,  width:260, height:120, accentColor:0x6366f1, roofColor:0x0f172a, signBgColor:0x4338ca, districtId:'district_commercial' },
+  {
+    id:'b_comm_dev',
+    name:'Commercial Development Site',
+    type:'Development Plot',
+    category:'Commercial Development',
+    price:150000,
+    incomePerMinute:0,
+    operatingCostPerMinute:0,
+    description:'A surveyed shovel-ready commercial plot in the financial core. Acquire the land to construct an advanced corporate blueprint.',
+    worldX:2500, worldY:650, width:260, height:120,
+    accentColor:0x475569, roofColor:0x334155, signBgColor:0x1e293b,
+    districtId:'district_commercial',
+    isDevelopmentPlot:true,
+    developmentOptions:[
+      { id:'bp_fintech',     name:'Fintech Innovation Hub',  type:'Tech Finance',    category:'Technology & Media',     constructionCost:180000, incomePerMinute:32000, operatingCostPerMinute:12000, description:'High-tech financial incubator operating algorithmic payment switches and crypto settlement rails.', accentColor:0x06b6d4, roofColor:0x0f172a, signBgColor:0x0891b2 },
+      { id:'bp_tradecenter', name:'Executive Trade Center',  type:'International Trade', category:'Corporate & Finance', constructionCost:260000, incomePerMinute:42000, operatingCostPerMinute:18000, description:'Global trade clearinghouse coordinating export letters of credit and international commodity swaps.', accentColor:0x2563eb, roofColor:0x1e293b, signBgColor:0x1d4ed8 },
+    ]
+  },
+
+  // ── INDUSTRIAL DISTRICT (Midland Logistics Basin & Works) ──────────────────
+  { id:'b_ind_brewery',   name:'Industrial Beverage Brewery', type:'Heavy Production', category:'Manufacturing & Industrial', price:260000, incomePerMinute:22000, operatingCostPerMinute:10000, description:'High-throughput bottling brewery churning out craft malts, carbonated waters, and bulk beverage kegs.',                                     worldX:150,  worldY:2050, width:260, height:120, accentColor:0xd97706, roofColor:0x292524, signBgColor:0xb45309, districtId:'district_industrial' },
+  { id:'b_ind_warehouse', name:'Mega Distribution Warehouse', type:'Logistics Hub',    category:'Automotive & Logistics',    price:380000, incomePerMinute:30000, operatingCostPerMinute:14000, description:'Heavy logistics center with robotic high-bay racking and 18-wheeler cross-docking bays supplying city retail.',                             worldX:600,  worldY:2050, width:260, height:120, accentColor:0x78716c, roofColor:0x1c1917, signBgColor:0x57534e, districtId:'district_industrial' },
+  { id:'b_ind_solar',     name:'Solar Assembly Gigafactory',  type:'Clean Energy',     category:'Infrastructure & Energy',   price:650000, incomePerMinute:52000, operatingCostPerMinute:24000, description:'High-tech automated manufacturing plant producing crystalline photovoltaic panels and utility grid batteries.',                           worldX:1050, worldY:2050, width:260, height:120, accentColor:0x059669, roofColor:0x064e3b, signBgColor:0x047857, districtId:'district_industrial' },
+  {
+    id:'b_ind_dev',
+    name:'Industrial Basin Site',
+    type:'Development Plot',
+    category:'Industrial Development',
+    price:200000,
+    incomePerMinute:0,
+    operatingCostPerMinute:0,
+    description:'Heavy-zoned industrial ground ready for specialized manufacturing or high-volume freight logistics infrastructure.',
+    worldX:600, worldY:2550, width:260, height:120,
+    accentColor:0x57534e, roofColor:0x292524, signBgColor:0x1c1917,
+    districtId:'district_industrial',
+    isDevelopmentPlot:true,
+    developmentOptions:[
+      { id:'bp_freight', name:'Intermodal Freight Terminal', type:'Heavy Logistics', category:'Automotive & Logistics', constructionCost:220000, incomePerMinute:38000, operatingCostPerMinute:16000, description:'Rail-to-truck multi-modal logistics terminal expediting container cargo citywide.', accentColor:0x475569, roofColor:0x0f172a, signBgColor:0x334155 },
+      { id:'bp_chemlab', name:'Bio-Chemical Refining Plant', type:'Chemical Refining', category:'Manufacturing & Industrial', constructionCost:320000, incomePerMinute:54000, operatingCostPerMinute:22000, description:'Certified industrial plant synthesizing bulk pharmaceutical compounds and specialty agricultural fertilizers.', accentColor:0x059669, roofColor:0x1e1b4b, signBgColor:0x047857 },
+    ]
+  },
+
+  // ── LUXURY DISTRICT (Waterfront Heights & Sovereign Enclave) ──────────────
+  { id:'b_lux_marina',    name:'Royal Yacht Club & Marina', type:'Private Club', category:'Luxury & Leisure', price:850000,  incomePerMinute:68000,  operatingCostPerMinute:30000, description:'Exclusive deepwater private harbor providing luxury superyacht slips, private tender concierge, and waterfront champagne lounge.',               worldX:2050, worldY:2050, width:260, height:120, accentColor:0x0284c7, roofColor:0x082f49, signBgColor:0x0369a1, districtId:'district_luxury' },
+  { id:'b_lux_penthouse', name:'Grand Sovereign Penthouse Suites', type:'Ultra Luxury Hospitality', category:'Food & Hospitality', price:1200000, incomePerMinute:96000, operatingCostPerMinute:40000, description:'Top-tier sky suites overlooking the metropolitan skyline with private infinity pools, helicopter pads, and Michelin dining.',    worldX:2500, worldY:2050, width:260, height:120, accentColor:0xb58a45, roofColor:0x1c1917, signBgColor:0x78350f, districtId:'district_luxury' },
+  { id:'b_lux_casino',    name:'Crown Royale Casino Palace', type:'Premier Gaming', category:'Luxury & Leisure', price:1800000, incomePerMinute:148000, operatingCostPerMinute:64000, description:'Gleaming palatial private gaming resort frequented by foreign ambassadors, enterprise titans, and high-roller VIPs.',                       worldX:2950, worldY:2050, width:260, height:120, accentColor:0xbe123c, roofColor:0x4c0519, signBgColor:0x9f1239, districtId:'district_luxury' },
+  {
+    id:'b_lux_dev',
+    name:'Waterfront Sovereign Reserve',
+    type:'Development Plot',
+    category:'Luxury Development',
+    price:450000,
+    incomePerMinute:0,
+    operatingCostPerMinute:0,
+    description:'Pristine waterfront shoreline ground reserved for prestigious ultra-high-net-worth leisure and private aviation development.',
+    worldX:2500, worldY:2550, width:260, height:120,
+    accentColor:0xb58a45, roofColor:0x1c1917, signBgColor:0x78350f,
+    districtId:'district_luxury',
+    isDevelopmentPlot:true,
+    developmentOptions:[
+      { id:'bp_islandclub', name:'Private Island Helipad Resort', type:'Ultra Luxury Resort', category:'Luxury & Leisure', constructionCost:600000, incomePerMinute:92000, operatingCostPerMinute:38000, description:'Private island sanctuary with twin helicopter landing pads, private villas, and presidential security.', accentColor:0x0891b2, roofColor:0x064e3b, signBgColor:0x0e7490 },
+      { id:'bp_auction',    name:'Sovereign Fine Art Auction House', type:'Fine Art & Rare Assets', category:'Corporate & Finance', constructionCost:850000, incomePerMinute:124000, operatingCostPerMinute:48000, description:'Elite private auction salon orchestrating record-breaking transactions for historic art, rare jewels, and luxury assets.', accentColor:0xb58a45, roofColor:0x292524, signBgColor:0x854d0e },
+    ]
+  },
 ];
 
 // ─── UPGRADE SYSTEM ──────────────────────────────────────────────────────────
@@ -118,7 +284,6 @@ export const UPGRADE_TIER_DEFS: UpgradeTierDef[] = [
   { level: 5, name: 'Premium Operation',  grossMult: 2.80, costMult: 0.70 },
 ];
 
-// Upgrade cost = businessPrice * this multiplier (indexed by toLevel)
 const UPGRADE_COST_MULT = [0, 0, 0.50, 1.25, 2.75, 5.00];
 
 export function getUpgradeCost(businessId: string, toLevel: number): number {
@@ -136,14 +301,56 @@ export function getEffectiveRates(businessId: string, level: number): {
 } {
   const def = BUSINESS_DEFINITIONS.find(b => b.id === businessId);
   if (!def) return { gross: 0, cost: 0, net: 0, capacity: 0, tierName: 'Basic Operation' };
+
+  let baseGross = def.incomePerMinute;
+  let baseCost = def.operatingCostPerMinute;
+  let basePrice = def.price;
+
+  // If developed property, pull rates from the selected blueprint
+  const bpId = state.developedProperties?.[businessId];
+  if (bpId && def.developmentOptions) {
+    const bp = def.developmentOptions.find(o => o.id === bpId);
+    if (bp) {
+      baseGross = bp.incomePerMinute;
+      baseCost = bp.operatingCostPerMinute;
+      basePrice = def.price + bp.constructionCost;
+    }
+  }
+
   const tierIndex = Math.min(Math.max(level, 1), 5) - 1;
   const tier = UPGRADE_TIER_DEFS[tierIndex];
-  const gross = Math.floor(def.incomePerMinute * tier.grossMult);
-  const cost  = Math.floor(def.operatingCostPerMinute * tier.costMult);
-  const baseCap = Math.max(20, Math.floor(def.price / 1500));
+  const gross = Math.floor(baseGross * tier.grossMult);
+  const cost  = Math.floor(baseCost * tier.costMult);
+  const baseCap = Math.max(20, Math.floor(basePrice / 1500));
   const capMults = [1, 1.4, 2.0, 3.0, 4.5];
   const capacity = Math.floor(baseCap * capMults[tierIndex]);
   return { gross, cost, net: gross - cost, capacity, tierName: tier.name };
+}
+
+// ─── ACTIVE BUSINESS DETAILS HELPER ──────────────────────────────────────────
+
+export function getActiveBusinessDetails(businessId: string, st: GameState = getGameState()): BusinessDef | null {
+  const def = BUSINESS_DEFINITIONS.find(b => b.id === businessId);
+  if (!def) return null;
+  const bpId = st.developedProperties?.[businessId];
+  if (bpId && def.developmentOptions) {
+    const bp = def.developmentOptions.find(b => b.id === bpId);
+    if (bp) {
+      return {
+        ...def,
+        name: `${def.name} (${bp.name})`,
+        type: bp.type,
+        category: bp.category,
+        incomePerMinute: bp.incomePerMinute,
+        operatingCostPerMinute: bp.operatingCostPerMinute,
+        description: bp.description,
+        accentColor: bp.accentColor,
+        roofColor: bp.roofColor,
+        signBgColor: bp.signBgColor,
+      };
+    }
+  }
+  return def;
 }
 
 // ─── SKIN DEFINITIONS ────────────────────────────────────────────────────────
@@ -169,7 +376,7 @@ export const MILESTONES: MilestoneDef[] = [
   { id:'ms_three_biz',     name:'Growing Empire',     xpReward:100,  description:'Own 3 businesses across the city.',             condition:(s)=>s.ownedBusinesses.length>=3 },
   { id:'ms_five_biz',      name:'Business Mogul',     xpReward:200,  description:'Own 5 businesses across different sectors.',    condition:(s)=>s.ownedBusinesses.length>=5 },
   { id:'ms_ten_biz',       name:'City Tycoon',        xpReward:500,  description:'Own 10 commercial enterprises.',               condition:(s)=>s.ownedBusinesses.length>=10 },
-  { id:'ms_all_biz',       name:'Empire Complete',    xpReward:2000, description:'Own all 17 businesses in the city.',           condition:(s)=>s.ownedBusinesses.length>=17 },
+  { id:'ms_all_biz',       name:'Empire Complete',    xpReward:2000, description:'Own all 17 businesses in the starter area.',   condition:(s)=>s.ownedBusinesses.filter(id=>{const d=BUSINESS_DEFINITIONS.find(b=>b.id===id);return (d?.districtId||'district_starter')==='district_starter';}).length>=17 },
   { id:'ms_first_upgrade', name:'Improvement Drive',  xpReward:75,   description:'Upgrade any business to Level 2.',              condition:(s)=>Object.values(s.businessUpgrades||{}).some(l=>l>=2) },
   { id:'ms_level3_upgrade',name:'Facility Manager',   xpReward:150,  description:'Upgrade any business to Level 3.',              condition:(s)=>Object.values(s.businessUpgrades||{}).some(l=>l>=3) },
   { id:'ms_level4_upgrade',name:'Capacity Builder',   xpReward:300,  description:'Upgrade any business to Level 4.',              condition:(s)=>Object.values(s.businessUpgrades||{}).some(l=>l>=4) },
@@ -182,6 +389,12 @@ export const MILESTONES: MilestoneDef[] = [
   { id:'ms_first_skin',    name:'Style Upgrade',      xpReward:50,   description:'Purchase a character outfit from the shop.',    condition:(s)=>(s.unlockedSkins||[]).some(id=>{const sk=SKIN_DEFINITIONS.find(d=>d.id===id);return sk!=null&&sk.price>0;}) },
   { id:'ms_wardrobe_5',    name:'Fashion Connoisseur',xpReward:250,  description:'Unlock 5 different character outfits.',         condition:(s)=>(s.unlockedSkins||[]).length>=5 },
   { id:'ms_all_skins',     name:'Wardrobe Complete',  xpReward:1000, description:'Own all available character outfits.',         condition:(s)=>(s.unlockedSkins||[]).length>=SKIN_DEFINITIONS.length },
+  // Phase 5 Multi-District Milestones
+  { id:'ms_unlock_commercial', name:'Commercial Expansion', xpReward:150, description:'Unlock the Downtown Commercial District concession.', condition:(s)=>s.unlockedDistricts.includes('district_commercial') },
+  { id:'ms_unlock_industrial', name:'Industrial Mogul',     xpReward:250, description:'Unlock the Midland Industrial District concession.', condition:(s)=>s.unlockedDistricts.includes('district_industrial') },
+  { id:'ms_unlock_luxury',     name:'High Society',         xpReward:500, description:'Unlock the Waterfront Luxury District charter.',      condition:(s)=>s.unlockedDistricts.includes('district_luxury') },
+  { id:'ms_all_districts',     name:'Master of the City',   xpReward:1000, description:'Unlock all 4 connected city districts.',              condition:(s)=>s.unlockedDistricts.length>=4 },
+  { id:'ms_first_dev',         name:'Master Developer',     xpReward:200, description:'Complete construction on a property development site.', condition:(s)=>Object.keys(s.developedProperties||{}).length>=1 },
 ];
 
 export const PLAYER_LEVEL_TITLES: Record<number, string> = {
@@ -210,12 +423,6 @@ export function computePlayerLevel(xp: number): number {
   return Math.min(10, Math.max(1, Math.floor(1 + Math.sqrt(xp / 100))));
 }
 
-/**
- * Authoritative Business Valuation Formula:
- * Asset Value = Purchase Price * (1 + 0.4 * (level - 1)) + Upgrade Investment
- * Performance Value = 25% of Cumulative Net Profit + (5 * Current Net Profit/Min)
- * Valuation = Asset Value + Performance Value
- */
 export function getBusinessValuation(businessId: string, st: GameState): number {
   const def = BUSINESS_DEFINITIONS.find(b => b.id === businessId);
   if (!def) return 0;
@@ -223,7 +430,15 @@ export function getBusinessValuation(businessId: string, st: GameState): number 
   const upgradeSpend = st.businessUpgradeSpend?.[businessId] ?? 0;
   const netCumul     = (st.businessRevenue?.[businessId] ?? 0) - (st.businessExpenses?.[businessId] ?? 0);
   const eff          = getEffectiveRates(businessId, level);
-  const assetValue   = Math.floor(def.price * (1 + 0.4 * (level - 1))) + upgradeSpend;
+
+  let assetBase = def.price;
+  const bpId = st.developedProperties?.[businessId];
+  if (bpId && def.developmentOptions) {
+    const bp = def.developmentOptions.find(b => b.id === bpId);
+    if (bp) assetBase += bp.constructionCost;
+  }
+
+  const assetValue   = Math.floor(assetBase * (1 + 0.4 * (level - 1))) + upgradeSpend;
   const profitValue  = Math.max(0, Math.floor(netCumul * 0.25)) + Math.max(0, eff.net * 5);
   return assetValue + profitValue;
 }
@@ -259,21 +474,28 @@ export function getBusinessFinancialStats(businessId: string, st: GameState): Bu
   const expenses = st.businessExpenses?.[businessId] ?? 0;
   const net = gross - expenses;
   const eff = getEffectiveRates(businessId, level);
-  const price = def?.price ?? 0;
+
+  let price = def?.price ?? 0;
+  const bpId = st.developedProperties?.[businessId];
+  if (bpId && def?.developmentOptions) {
+    const bp = def.developmentOptions.find(b => b.id === bpId);
+    if (bp) price += bp.constructionCost;
+  }
+
   const totalInvestment = price + upgradeSpend;
   const remainingPayback = totalInvestment - net;
 
   let paybackStatus: string;
   let paybackMinutes: number | null = null;
 
-  if (net >= totalInvestment) {
+  if (net >= totalInvestment && totalInvestment > 0) {
     paybackStatus = 'Recouped (Profitable)';
     paybackMinutes = 0;
   } else if (eff.net > 0) {
     paybackMinutes = Math.ceil(remainingPayback / eff.net);
     paybackStatus = `~${paybackMinutes} mins`;
   } else {
-    paybackStatus = 'Unprofitable (Operating at loss)';
+    paybackStatus = def?.isDevelopmentPlot && !bpId ? 'Undeveloped Plot' : 'Operating at loss';
   }
 
   return {
@@ -299,7 +521,7 @@ export function getBusinessFinancialStats(businessId: string, st: GameState): Bu
 
 const DEFAULT_STATE: GameState = {
   cash: 50000,
-  location: 'DOWNTOWN COMMERCIAL DISTRICT',
+  location: 'STARTER DISTRICT — OLD TOWN',
   ownedBusinesses: [],
   ledger: [],
   activeInteraction: null,
@@ -318,6 +540,8 @@ const DEFAULT_STATE: GameState = {
   completedMilestones: [],
   pendingMilestoneNotifications: [],
   targetWaypoint: null,
+  unlockedDistricts: ['district_starter'],
+  developedProperties: {},
 };
 
 let state: GameState = { ...DEFAULT_STATE };
@@ -346,6 +570,8 @@ export const loadGame = () => {
       playerLevel:                   typeof p.playerLevel==='number'            ? p.playerLevel               : 1,
       completedMilestones:           Array.isArray(p.completedMilestones)       ? p.completedMilestones       : [],
       pendingMilestoneNotifications: Array.isArray(p.pendingMilestoneNotifications) ? p.pendingMilestoneNotifications : [],
+      unlockedDistricts:             Array.isArray(p.unlockedDistricts)          ? p.unlockedDistricts         : ['district_starter'],
+      developedProperties:           (p.developedProperties && typeof p.developedProperties==='object') ? (p.developedProperties as Record<string,string>) : {},
       // Always reset transient UI state
       activeInteraction: null,
       panelOpen: false,
@@ -355,6 +581,16 @@ export const loadGame = () => {
     if (!state.unlockedSkins.includes('skin_street')) state.unlockedSkins.push('skin_street');
     if (!state.unlockedSkins.includes('skin_campus')) state.unlockedSkins.push('skin_campus');
     if (!state.unlockedSkins.includes('skin_casual')) state.unlockedSkins.push('skin_casual');
+    if (!state.unlockedDistricts.includes('district_starter')) state.unlockedDistricts.push('district_starter');
+
+    // Prevent legacy lockouts: auto-unlock any district where the player already owns an enterprise
+    for (const bId of state.ownedBusinesses) {
+      const bDef = BUSINESS_DEFINITIONS.find(b => b.id === bId);
+      if (bDef?.districtId && !state.unlockedDistricts.includes(bDef.districtId)) {
+        state.unlockedDistricts.push(bDef.districtId);
+      }
+    }
+
     // Validate equipped skin
     if (!state.unlockedSkins.includes(state.equippedOutfit)) state.equippedOutfit = 'skin_street';
   } catch (e) {
@@ -378,6 +614,8 @@ export const saveGame = () => {
       playerXP: state.playerXP, playerLevel: state.playerLevel,
       completedMilestones: state.completedMilestones,
       pendingMilestoneNotifications: state.pendingMilestoneNotifications,
+      unlockedDistricts: state.unlockedDistricts,
+      developedProperties: state.developedProperties,
     }));
   } catch (e) {
     console.error('Failed to save game', e);
@@ -443,11 +681,19 @@ export const dismissMilestoneNotification = (id: string) => {
 
 export const buyBusiness = (businessId: string): { success: boolean; message: string } => {
   const def = BUSINESS_DEFINITIONS.find(b => b.id === businessId);
-  if (!def)                                  return { success:false, message:'Business not found.' };
-  if (state.ownedBusinesses.includes(businessId)) return { success:false, message:'You already own this business.' };
-  if (state.cash < def.price)                return { success:false, message:`Need ₦${(def.price-state.cash).toLocaleString()} more.` };
+  if (!def) return { success:false, message:'Business not found.' };
 
-  const newXP = state.playerXP + 10;
+  // Check district unlock status
+  const districtId = def.districtId || 'district_starter';
+  if (!state.unlockedDistricts.includes(districtId)) {
+    const distDef = DISTRICT_DEFINITIONS.find(d => d.id === districtId);
+    return { success:false, message:`District Locked: Acquire the ${distDef?.name || 'district'} concession first.` };
+  }
+
+  if (state.ownedBusinesses.includes(businessId)) return { success:false, message:'You already own this business.' };
+  if (state.cash < def.price) return { success:false, message:`Need ₦${(def.price-state.cash).toLocaleString()} more.` };
+
+  const newXP = state.playerXP + 15;
   updateGameState({
     cash:            state.cash - def.price,
     ownedBusinesses: [...state.ownedBusinesses, businessId],
@@ -460,12 +706,93 @@ export const buyBusiness = (businessId: string): { success: boolean; message: st
   return { success:true, message:`Purchased ${def.name} for ₦${def.price.toLocaleString()}!` };
 };
 
+// ─── DISTRICT UNLOCK ─────────────────────────────────────────────────────────
+
+export const unlockDistrict = (districtId: string): { success: boolean; message: string } => {
+  const dist = DISTRICT_DEFINITIONS.find(d => d.id === districtId);
+  if (!dist) return { success: false, message: 'District not found.' };
+  if (state.unlockedDistricts.includes(districtId)) {
+    return { success: false, message: `${dist.name} is already unlocked.` };
+  }
+
+  // Check requirements
+  if (state.playerLevel < dist.requiredPlayerLevel) {
+    return { success: false, message: `Requires Player Level ${dist.requiredPlayerLevel} (Current: Lvl ${state.playerLevel}).` };
+  }
+  if (state.ownedBusinesses.length < dist.requiredBusinessesOwned) {
+    return { success: false, message: `Requires owning ${dist.requiredBusinessesOwned} businesses (You own ${state.ownedBusinesses.length}).` };
+  }
+  const netWorth = getPlayerNetWorth(state);
+  if (netWorth < dist.requiredNetWorth) {
+    return { success: false, message: `Requires ₦${dist.requiredNetWorth.toLocaleString()} Net Worth (Current: ₦${netWorth.toLocaleString()}).` };
+  }
+  if (state.cash < dist.unlockCost) {
+    return { success: false, message: `Need ₦${(dist.unlockCost - state.cash).toLocaleString()} more cash for the district concession.` };
+  }
+
+  const xpReward = 150 + dist.requiredPlayerLevel * 40;
+  const newXP = state.playerXP + xpReward;
+  const newCash = state.cash - dist.unlockCost;
+  const newLedger: Transaction[] = dist.unlockCost > 0
+    ? [{ date: new Date().toISOString(), amount: -dist.unlockCost, description: `Acquired ${dist.name} Commercial Concession`, type: 'purchase' as const }, ...state.ledger]
+    : state.ledger;
+
+  updateGameState({
+    cash: newCash,
+    unlockedDistricts: [...state.unlockedDistricts, districtId],
+    ledger: newLedger.slice(0, 150),
+    playerXP: newXP,
+    playerLevel: computePlayerLevel(newXP),
+  });
+  applyMilestoneCheck();
+  saveGame();
+  return { success: true, message: `Concession Acquired: ${dist.name} Unlocked! (+${xpReward} XP)` };
+};
+
+// ─── PROPERTY DEVELOPMENT ───────────────────────────────────────────────────
+
+export const developProperty = (plotId: string, blueprintId: string): { success: boolean; message: string } => {
+  const plot = BUSINESS_DEFINITIONS.find(b => b.id === plotId);
+  if (!plot) return { success: false, message: 'Property site not found.' };
+  if (!state.ownedBusinesses.includes(plotId)) {
+    return { success: false, message: 'You must purchase this development site first.' };
+  }
+  if (state.developedProperties?.[plotId]) {
+    return { success: false, message: 'This property has already been developed.' };
+  }
+
+  const bp = plot.developmentOptions?.find(o => o.id === blueprintId);
+  if (!bp) return { success: false, message: 'Blueprint not found.' };
+
+  if (state.cash < bp.constructionCost) {
+    return { success: false, message: `Need ₦${(bp.constructionCost - state.cash).toLocaleString()} more for construction.` };
+  }
+
+  const newXP = state.playerXP + 120;
+  const newDeveloped = { ...(state.developedProperties || {}), [plotId]: blueprintId };
+  updateGameState({
+    cash: state.cash - bp.constructionCost,
+    developedProperties: newDeveloped,
+    ledger: [{ date: new Date().toISOString(), amount: -bp.constructionCost, description: `Developed ${plot.name}: Constructed ${bp.name}`, type: 'purchase' as const, businessId: plotId }, ...state.ledger].slice(0, 150),
+    playerXP: newXP,
+    playerLevel: computePlayerLevel(newXP),
+  });
+  applyMilestoneCheck();
+  saveGame();
+  return { success: true, message: `Construction Complete: ${bp.name} is now operating!` };
+};
+
 // ─── UPGRADE BUSINESS ────────────────────────────────────────────────────────
 
 export const upgradeBusinessLevel = (businessId: string): { success: boolean; message: string } => {
   const def = BUSINESS_DEFINITIONS.find(b => b.id === businessId);
   if (!def)                                       return { success:false, message:'Business not found.' };
   if (!state.ownedBusinesses.includes(businessId)) return { success:false, message:'You do not own this business.' };
+
+  // If un-developed plot, prompt development instead of upgrade
+  if (def.isDevelopmentPlot && !state.developedProperties?.[businessId]) {
+    return { success: false, message: 'You must construct a development blueprint before upgrading operations.' };
+  }
 
   const currentLevel = state.businessUpgrades?.[businessId] ?? 1;
   if (currentLevel >= 5) return { success:false, message:'Already at maximum level (Premium Operation).' };
@@ -490,8 +817,7 @@ export const upgradeBusinessLevel = (businessId: string): { success: boolean; me
     ledger:               [{ date:new Date().toISOString(), amount:-cost, description:`Upgraded ${def.name} to Level ${toLevel} (${tierDef.name})`, type:'upgrade' as const, businessId }, ...state.ledger].slice(0,150),
     playerXP:             newXP,
     playerLevel:          computePlayerLevel(newXP),
-    // Resume if suspended — give it a fresh chance
-    suspendedBusinesses: state.suspendedBusinesses.filter(id => id !== businessId),
+    suspendedBusinesses:  state.suspendedBusinesses.filter(id => id !== businessId),
   });
   applyMilestoneCheck();
   saveGame();
@@ -555,6 +881,10 @@ export const startIncomeLoop = () => {
 
       const level     = cur.businessUpgrades?.[id] ?? 1;
       const eff       = getEffectiveRates(id, level);
+
+      // Undeveloped plot generates no cashflow
+      if (eff.gross === 0 && eff.cost === 0) return;
+
       const tGross    = Math.floor(eff.gross / 4);
       const tExpense  = Math.floor(eff.cost  / 4);
       const tNet      = tGross - tExpense;

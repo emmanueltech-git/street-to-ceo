@@ -107,10 +107,23 @@ export class MainScene extends Phaser.Scene {
     const px = this.player.x;
     const py = this.player.y;
     let district: string;
-    if      (py < 450)  district = px < 1000 ? 'NORTH MARKET AVENUE'          : 'UPTOWN RETAIL STRIP';
-    else if (py < 850)  district = px < 1000 ? 'MIDTOWN FOOD & AUTO PLAZA'    : 'HEALTH & RECREATION QUARTER';
-    else if (py < 1250) district = px < 1000 ? 'CENTRAL COMMERCE BOULEVARD'   : 'ENERGY & REAL ESTATE ROW';
-    else                district = px < 800  ? 'CIVIC & HOSPITALITY SECTOR'   : 'CENTRAL CIVIC PLAZA';
+
+    if (px < 1800 && py < 1800) {
+      if (py < 450)       district = px < 1000 ? 'STARTER: NORTH MARKET AVENUE' : 'STARTER: UPTOWN RETAIL STRIP';
+      else if (py < 850)  district = px < 1000 ? 'STARTER: MIDTOWN FOOD & AUTO PLAZA' : 'STARTER: HEALTH QUARTER';
+      else if (py < 1250) district = px < 1000 ? 'STARTER: CENTRAL COMMERCE BOULEVARD' : 'STARTER: REAL ESTATE ROW';
+      else                district = 'STARTER: CENTRAL CIVIC PLAZA';
+    } else if (px >= 1800 && py < 1800) {
+      if (py < 900)       district = 'COMMERCIAL: FINANCIAL TOWERS';
+      else                district = 'COMMERCIAL: CORPORATE BOULEVARD';
+    } else if (px < 1800 && py >= 1800) {
+      if (py < 2700)      district = 'INDUSTRIAL: APEX LOGISTICS BASIN';
+      else                district = 'INDUSTRIAL: POWER & GRID SECTOR';
+    } else {
+      if (py < 2700)      district = 'LUXURY: WATERFRONT MARINA';
+      else                district = 'LUXURY: SOVEREIGN CASINO STRIP';
+    }
+
     const st = getGameState();
     if (st.location !== district) updateGameState({ location: district });
   }
